@@ -1,0 +1,10 @@
+<div class="col-md-12">
+  <div class="recap" >
+    Schedule recap:
+    <p>Execute {{schedule.info}} <span ng-if="schedule.freq">, every {{schedule.freq}}</span></p>
+    <p>Starting on {{schedule.time}} <span ng-if="schedule.until"><br>until the {{schedule.until}}</span></p>
+    <p ng-if="schedule.exdate">
+      except on the: <span ng-repeat="exdate in schedule.exdate">{{exdate}}{{$last ? '':', '}}</span>
+    </p>
+  </div>
+</div>

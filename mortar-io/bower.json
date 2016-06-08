@@ -1,0 +1,29 @@
+{
+  "name": "mortar-io",
+  "version": "0.0.1",
+  "private": true,
+  "dependencies": {
+    "jquery": "1.11.1",
+    "angular-bootstrap": "0.11.0",
+    "angular": "1.2.16",
+    "angular-ui-router": "~0.2.10",
+    "angular-busy": "~4.0.4",
+    "checklist-model": "~0.1.3",
+    "angular-mighty-datepicker": "~0.0.9",
+    "ng-file-upload": "~1.6.9",
+    "angular-qr": "~0.2.0",
+    "fontawesome": "~4.2.0",
+    "strophejs": "hack-strophe#~1.1.5",
+    "strophejs-plugins": "bower-strophejs-plugins#~0.0.7"
+  },
+  "resolutions": {
+    "angular": "1.2.16"
+  },
+  "devDependencies": {
+    "requirejs": "~2.1.22",
+    "karma": "~0.4.6",
+    "karma-jasmine": "~0.3.6",
+    "vcard": "~0.2.3",
+    "angular-modal-service": "~0.6.9"
+  }
+}

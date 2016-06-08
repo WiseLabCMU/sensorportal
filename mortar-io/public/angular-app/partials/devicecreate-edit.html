@@ -1,0 +1,47 @@
+<div class="header"> 
+        <button type="submit" class="link-button" 
+  	      ng-click="continue()" value="Continue" 
+  	      >Continue
+        </button>
+</div>
+
+<div class="grl-padding">
+<img ng-if="device.properties && device.properties.device_image" class="media-object pull-left img-thumbnail" ng-src="{{device.properties.device_image}}" alt="Device Image" height="150" width="150">
+      <div class="media-body">
+	      <strong><p class="item-detail"><strong>Device Name: </strong><span><input type="text" ng-required="required" ng-model="device.name" ng-trim="false"></span></p>
+	      <strong><p class="item-detail"><strong>Description: </strong><span><input type="text" ng-required="required" ng-model="device.info" ng-trim="false"></span></p>
+        <strong>Address: </strong>
+        <p>
+	  Street: <input type="text" ng-model="device.location.street" name="Street"/>
+	  Building: <input type="text" ng-model="device.location.building" name="Building"/>
+	  Floor: <input type="text" ng-model="device.location.floor" name="Floor"/>
+	  Room: <input type="text" ng-model="device.location.room" name="Room"/>
+        </p>
+	<p ng-if="device.properties">
+	<strong>Properties</strong><br>
+	<span ng-repeat="(key,value) in device.properties">{{key}}: <input type="text" ng-model="device.properties[key]" ng-trim="false" name="key"/><br> 
+	</span>
+      </div>
+<table class="table">
+  <thead>
+    <th>Name</th>
+    <th>Values</th>
+    <th>Units</th>
+    <th>Properties</th>
+  </thead>
+  <tbody>
+    <tr ng-repeat="transducer in device.transducers" ng-switch="transducer.unit" >
+      <td>{{transducer.name}}</td>
+      <td ng-switch-default>{{transducer.min ? 'min: '+transducer.min : ''}} {{transducer.max ? 'max: '+transducer.max : ''}}</td>
+      <td ng-switch-default>{{(transducer.unit == 'enum') ? '' : transducer.unit}}</td>
+      <td ng-switch-when="enum">
+        <span ng-repeat="e in transducer.e">{{$index}}{{$last ? '' : ', '}}</span>
+      </td>
+      <td ng-switch-when="enum"> 
+        <span ng-repeat="unit in transducer.e">{{unit}}{{$last ? '' : ', '}}</span>
+      </td>
+      <td ng-repeat="(key,value) in transducer.properties">{{key + ":\n" + value}}</td>
+	     </tr>
+  </tbody>
+</table>
+</div>

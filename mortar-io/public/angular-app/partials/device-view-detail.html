@@ -1,0 +1,40 @@
+<div class="row">
+  <div class="col-md-9">
+    <div class="media grl-padding">
+      <img ng-if="device.properties && device.properties.device_image" class="media-object pull-left img-thumbnail" ng-src="{{device.properties.device_image}}" alt="Device Image" height="150" width="150">
+      <div class="media-body">
+	      <p class="item-detail"><strong>Device Name: </strong><br><span>{{device.name}}</span></p>
+	      <p class="item-detail"><strong>Description: </strong><br><span>{{device.info}}</span></p>
+        <p ng-if="device.location.street || device.location.building || 
+		device.location.floor || device.location.room">
+          <strong>Address: </strong>
+          <span ng-if="device.location.street">Street: {{device.location.street}},</span><br>
+          <span ng-if="device.location.building">Building: {{device.location.building}}, </span><br>
+          <span ng-if="device.location.floor">Floor: {{device.location.floor}}, </span><br>
+          <span ng-if="device.location.room">Room: {{device.location.room}}</span><br>
+	  
+        </p>
+	<strong>Device ID: </strong> {{device.id}} <br>
+	<p ng-if="device.properties">
+	<strong>Properties</strong><br>
+	<span ng-repeat="(key,value) in device.properties">{{key}}: {{value}}<br> 
+	</span>
+	</p>
+	<p ng-if="device.timestamp">
+	<strong>Timestamp</strong><br>
+	<span>{{device.timestamp}}</span>
+	</p>
+	<p ng-if="device.storage">
+	<strong>Storage</strong><br>
+	<span ng-repeat="obj in device.storage" >Address: {{obj.address}}<br></span>
+	</p>
+	<p ng-if="!device.storage && (user.permittedDevices.owner[device.id])">
+	<strong><button class="btn blue-btn" ng-disabled="False" ng-click="device.addAffiliation('respawn@sensor.andrew.cmu.edu', 'publisher')">Add Storage</button></strong><br>
+	</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="grl-padding"><qr size="150" text="qrString"></qr></div>
+  </div>
+</div>

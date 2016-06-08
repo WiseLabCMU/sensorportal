@@ -1,0 +1,31 @@
+<div class="modal-header">
+  <h3 class="modal-title">Update Information</h3>
+</div>
+<div cg-busy="saveUserPromise"></div>
+<div cg-busy="getUserPromise"></div>
+<form role="form" name="InitUserForm" novalidate>
+  <div class="modal-body">
+    <alert ng-show="cp.error" type="warning" close="cp.error=false">{{cp.errorMessage}}</alert>
+  <div class="form-group" show-errors>
+      <label for="name">Name</label>
+      <input class="form-control" type="text" name="name" ng-model="user.name" id="name" required />
+      <div ng-show="AddEditUserForm.name.$error.required && AddEditUserForm.name.$dirty && AddEditUserForm.name.hasVisited">
+        <p>Please, type in a name.</p>
+      </div>
+    </div>
+    <div class="form-group" show-errors>
+      <label for="email">E-mail</label>
+      <input class="form-control" type="email" name="email" ng-model="user.email" id="email" required />
+       <div ng-show="AddEditUserForm.email.$error.required && AddEditUserForm.email.$dirty && AddEditUserForm.email.hasVisited">
+        <p>Please, type in an email address.</p>
+      </div>
+      <div ng-show="AddEditUserForm.email.$error.email && AddEditUserForm.email.$dirty && AddEditUserForm.email.hasVisited">
+        <p>Please, type in a valid email address.</p>
+      </div>
+    </div>
+   </div>
+  <div class="modal-footer">   
+    <input type="button" class="btn link-button" ng-click="cancel()" value="Cancel">
+    <button ng-click="saveUser(user)" class="btn blue-btn" >Update Information</button>
+  </div>  
+</form>

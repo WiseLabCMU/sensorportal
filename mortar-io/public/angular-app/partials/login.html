@@ -1,0 +1,21 @@
+<div id="login" class="login" ng-controller="LoginCtrl">
+  <h1 class="text-center">Sensor Andrew</h1>
+  <form name="loginForm" role="form" ng-submit="login()" novalidate>
+    <div class="form-group">
+      <label for="username">Username:</label>
+      <input class="form-control" type="text" name="username" ng-model="username" id="username" required>
+    </div>
+    <div class="form-group">
+      <label for="password">Password:</label>
+      <input class="form-control" type="password" name="password" ng-model="password" id="password" required>
+    </div>
+    <button type="submit" class="btn btn-default" ng-disabled="loginForm.$invalid">Login</button>
+    <a ui-sref="forgotPassword" class="btn btn-link" ng-click="forgotPassword()">Forgot password</a>
+    <div cg-busy="loginPost"></div>
+  </form>
+  <br>
+  <br>
+  <div align="right">
+  Powered by <a href="http://dev.mortr.io">Mortar.io</a>
+  </div>
+</div>
