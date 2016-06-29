@@ -57,8 +57,8 @@ app.controller('DeviceCreateTemplateCtrl', function($scope, Device, $stateParams
 	$scope.selectedDevice = null;
 	$scope.createType = $stateParams['type'];
 
-		// Assumes rootFolder has already been loaded
-	$scope.template = Device.constructDevice(User.rootFolder, false).
+	// Assumes rootFolder has already been loaded
+	$scope.template = Device.constructDevice(User.favoritesFolder, false).
 	getChildByName('templates');
 	Browser.loadChildren($scope.template.id);
 	Device.constructDevice($scope.template.id, true).then(function(device) {
@@ -120,15 +120,24 @@ app.controller('DeviceCreateConfigCtrl', function($scope, Device,
 		}
 		return null;
 	};
+	var set_config = function(config, config_var, config_val) {
+		var configHold;
+		for (var arrIndex in config) {
+			configHold = config[arrIndex];
+			if (configHold.var == config_var) {
+				configHold.value = config_val;
+				return;
+			}
+		}
+		return null;
+	};
 	// todo add more information about config
 	Device.constructDevice($stateParams.id, true).then(
 		function(device) {
 			device.getConfig(true).then(function(result) {
 				$scope.template = device;
 				console.log($scope.template.config);
-				config_item = find_config($scope.template.config, "pubsub#max_items");
-				console.log(config_item);
-				config_item.value = 500;
+				set_config($scope.template.config, "pubsub#max_items",500);
 			}, function(r) {
 				// todo 
 				console.log(error);
@@ -138,7 +147,8 @@ app.controller('DeviceCreateConfigCtrl', function($scope, Device,
 		var deviceUUID = uuid4.generate();
 		device = Device.constructDevice(deviceUUID, false);
 		device.config = $scope.template.config;
-		device.create().then(function(result) {
+		set_config(device.config,"pubsub#max_items",500);
+		device.create(device.config).then(function(result) {
 			$state.go('devicecreate.edit', {
 				template: $stateParams.id,
 				deviceid: deviceUUID
