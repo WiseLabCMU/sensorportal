@@ -378,10 +378,26 @@
 					}, 1000000);
 				return deferred.promise;
 			},
-			create: function() {
+			configFormat: function(config) { 
+				var configFormatted = {};
+				var arrLen = config.length-1;
+				var confIndex;
+				var confHold;
+				for (confIndex = 0;confIndex<arrLen;confIndex++) {
+					confHold = config[confIndex];
+					console.log(configIndex);
+					console.log(confHold);
+					configFormatted[confHold['var']] = confHold['value'];
+				}
+				console.log(config);
+				console.log("COnfig formatted");
+				console.log(configFormatted);
+				return configFormatted
+
+			},
+			create: function(config) {
 				var $self = this;
 				var deferred = $q.defer();
-				var create_options = $self.config;
 				$self.children = [];
 				if (typeof $self.references == 'undefined') {
 					$self.references = {
@@ -390,12 +406,11 @@
 						others: {}
 					};
 				}
-				console.log("creating");
-				User.connection.pubsub.createNode(
-					$self.id, create_options,
-					function(result) {
+				console.log(config);
 
-						console.log(result);
+				User.connection.pubsub.createNode(
+					$self.id, $self.configFormat(config),
+					function(result) {
 						var type = result.getAttribute('type');
 						if (type == 'result') {
 							var metaStanza = $self._getMetaStanza();
