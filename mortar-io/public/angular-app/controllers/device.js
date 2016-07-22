@@ -214,6 +214,12 @@
 		$scope.selectFolder = function(objFolder) {
 			$scope.selectedFolder = objFolder;
 		};
+
+		/**
+		 * isNotSelect callback function to determine if folder is already
+		 * selected. 
+		 * @param  Folder objFolder Folder object
+		 */
 		$scope.isNotSelect = function() {
 			return typeof $scope.selectedFolder === 'undefined';
 		};

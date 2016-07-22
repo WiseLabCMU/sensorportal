@@ -15,7 +15,8 @@
 			this.references.children = {};
 			this.references.parents = {};
 			this.references.others = {};
-			this.interfaces = {};
+			this.interfaces = null;
+			this.storage = [];
 			this.children = [];
 
 		};
@@ -206,43 +207,37 @@
 			 * @param Element Meta item element*/
 			_parseMetaItem: function(metaItem) {
 				var $self = this;
-				if (typeof $self.timestamp != 'undefined' &&
-					typeof metaItem.childNodes[0].getAttribute('timestamp') != 'undefined' &&
-					metaItem.childNodes[0].getAttribute('timestamp') == $self.timestamp) {
-					return;
-				}
+				var node, key, value, tran, nodes;
+				console.log(metaItem);
 				if (typeof metaItem.childNodes[0].getAttribute('type') != 'undefined')
-					$self.type = $self.type == metaItem.childNodes[0].getAttribute('type') ?
-					$self.type : metaItem.childNodes[0].getAttribute('type');
+					$self.type = metaItem.childNodes[0].getAttribute('type');
 				if (typeof metaItem.childNodes[0].getAttribute('name') != 'undefined') {
-					$self.name = $self.name == metaItem.childNodes[0].getAttribute('name') ?
-						$self.name : metaItem.childNodes[0].getAttribute('name');
+					$self.name = metaItem.childNodes[0].getAttribute('name');
 				}
 				if (typeof metaItem.childNodes[0].getAttribute('info') != 'undefined') {
-					$self.info = $self.info == metaItem.childNodes[0].getAttribute('info') ?
-						$self.name : metaItem.childNodes[0].getAttribute('info');
+					$self.info = metaItem.childNodes[0].getAttribute('info');
 				}
 				if (typeof metaItem.childNodes[0].getAttribute('timestamp') != 'undefined') {
-					$self.timestamp = $self.timestamp == metaItem.childNodes[0].getAttribute('timestamp') ?
-						$self.timestamp : metaItem.childNodes[0].getAttribute('timestamp');
+					$self.timestamp = metaItem.childNodes[0].getAttribute('timestamp');
 				}
-				var nodes = metaItem.childNodes[0].childNodes;
-				var node, key, value, tran;
+				nodes = metaItem.childNodes[0].childNodes;
+				console.log("These are the child nodes\n");
+				console.log(nodes);
 				$self.properties = {};
 				$self.transducers = {};
 				for (child_index = 0; child_index < nodes.length; child_index++) {
 					node = nodes[child_index];
+					console.log(node);
 					if (node.tagName == 'property') {
 						key = node.getAttribute('name');
 						value = node.getAttribute('value');
-						if (typeof $self.properties[key] == 'undefined' || $self.properties[key] != value) {
+						if (typeof $self.properties[key] == 'undefined' || 
+						    $self.properties[key] != value) {
 							$self.properties[key] = value;
 						}
 					} else if (node.tagName == 'transducer') {
 						tran = $self._parseTransducer(node);
-						if (typeof $self.transducers[tran.name] == 'undefined') {
-							$self.transducers[tran.name] = tran;
-						}
+						$self.transducers[tran.name] = tran;
 					} else if (node.tagName == 'geolocation') {
 						$self.geolocation = $self.parseGeolocation(node);
 					} else if (node.tagName == 'interface') {
@@ -316,7 +311,7 @@
 			},
 			_parseStorageItem: function(storageItem) {
 				var storage;
-				if (typeof this.storage == 'undefined') {
+				if (typeof this.storage === null) {
 					storage = [];
 				} else {
 					storage = this.storage;
@@ -324,16 +319,29 @@
 
 				var addressesItem = storageItem.childNodes[0];
 				var nodes = addressesItem.childNodes;
-				var address, node, key;
+				var address, node, key, found;
 
 				for (child_index = 0; child_index < nodes.length; child_index++) {
-					node = nodes[child_index];
+				        node = nodes[child_index];
 					address = node.getAttribute('link');
-					key = node.getAttribute('key');
-					if (!self._contains(storage, address)) {
+				        key = node.getAttribute('key');
+					found = false;
+					console.log(key);
+					console.log(address);
+					console.log(storage);
+					for (storage_entry in storage) {
+						if (storage[storage_entry].address == address) {
+				        	        storage[storage_entry].key = key;
+						        found = true;
+							break;
+						}
+					}
+
+
+																							if (!found) {
 						storage.push({
-							address: address,
-							key: key
+						address: address,
+						key: key
 						});
 					}
 				}
@@ -353,13 +361,18 @@
 				}
 				$self.user.connection.pubsub.items($self.id,
 					function(stanza) {
+						console.log(stanza);
 						var items = stanza.getElementsByTagName('items');
 						var child, child_index, id;
 						var t_values = [];
 						var n_items = items[0].childElementCount;
+						console.log(n_items);
 						for (child_index = 0; child_index < n_items; child_index++) {
+							console.log("child node");
 							child = items[0].childNodes[child_index];
+							console.log(child);
 							id = child.getAttribute('id');
+							console.log(id);
 							if (id == 'meta') {
 								$self._parseMetaItem(child);
 							} else if (id == 'references') {
@@ -490,7 +503,8 @@
 			hasTransducers: function() {
 				if (typeof this.transducers == 'undefined')
 					return false;
-				if (this.transducers.length == 0)
+				// transducers are objects mapping transducer name to transducer
+				if (angular.equals({},this.transducers))
 					return false;
 				return true;
 			},
@@ -879,20 +893,23 @@
 		 * @param  {[type]} json [description]
 		 * @return {[type]}      [description]
 		 */
-		DeviceService.constructDevice = function(id, initialize) {
+		DeviceService.constructDevice = function(id, initialize,reload) {
 			var device;
 			var devices = DeviceService.devices;
 			var toLoad = false;
+			if (typeof reload === 'undefined') { 
+				reload = false;
+			}
 			if (typeof id == 'undefined' || id == '') {
 				if (initialize) {
 					var deferred = $q.defer();
-					deferred.reject("bad id");
+					deferred.reject("Event node ID not specified.");
 					return deferred.promise;
 				} else {
 					return null;
 				}
 			}
-			if (typeof devices[id] == 'undefined') {
+			if (typeof devices[id] === 'undefined') {
 				if (initialize == false) {
 					device = new Device(id);
 					device.loaded = false;
@@ -904,6 +921,13 @@
 			} else {
 				device = devices[id];
 				device.loaded = true;
+				console.log("Device was loaded");
+				var deferred = $q.defer();
+				if (initialize) { 
+					deferred.resolve(device);
+				} else { 
+					return device;
+				}
 			}
 			if (initialize) {
 				var deferred = $q.defer();
@@ -911,9 +935,6 @@
 					if (loaded_device) {
 						device.folders = device.references.children;
 						devices[id] = device;
-						if (typeof DeviceService.objFolder === 'undefined') {
-							DeviceService.objFolder = device;
-						}
 					} else {
 						DeviceService.references[device.id] = device;
 					}
