@@ -27,9 +27,15 @@
         $scope.selectFolder = function(objFolder) {
             $scope.selectedFolder = objFolder;
             Device.constructDevice(objFolder.id, true).then(function(device) {
-                $state.go('device.list', {
-                    folder: objFolder.id
-                });
+		if (device.hasTransducers()) {      
+		 	$state.go('device.view.detail', {
+                	    id: objFolder.id
+            		});
+		} else { 
+                	$state.go('device.list', {
+                	    folder: objFolder.id
+                	});
+		}
             });
         };
 
@@ -59,6 +65,23 @@
                 }
             });
         };
+	/**
+         * removeFolder callback function to pass to browser directive
+         */
+        $scope.removeFolder = function() {
+            console.log("Adding folder remove modal");
+            modalInstance = $modal.open({
+                templateUrl: 'angular-app/partials/FolderRemoveModal.html',
+                controller: 'FolderModalCtrl',
+                scope: $scope,
+                resolve: {
+                    fromModal: function() {
+                        return false;
+                    }
+                }
+            });
+        };
+
     });
     /**
      * [description]
@@ -126,10 +149,15 @@
          */
         $scope.onFileSelect = function($files) {
                 $scope.folder.file = $files[0];
-            }
-            /**
-             * Submit the necesarry data to update or create a folder
-             */
+        }
+	/**
+         * removeFolder removes reference to a device. 
+         */
+        $scope.removeFolder = function() {
+	}
+        /**
+         * Submit the necesarry data to update or create a folder
+         */
         $scope.submitFolder = function() {
             if ($scope.isUpdate) { //Check if is for update
                 $scope.folder.publishMeta();
@@ -250,16 +278,19 @@
         $window, Alert, User, Device, Browser) {
         $scope.devices = [];
         $scope.parentFolder = null;
-        $scope.selectedFolder = {};
+	$scope.stelectedFolderId = "";
+        $scope.selectedFolder = {"references": null};
         $scope.user = User;
 
+	/*$scope.$watch('selectedFolder.references', function() {
+		$scope.initFolder();
+	});*/
         /**
          * initFolder get the current Folder
          * @param  string strFolderId Folder ID
          */
         $scope.initFolder = function(strFolderId) {
             Device.constructDevice(strFolderId, true).then(function(device) {
-                Device.objFolder = device;
                 $scope.selectedFolder = device;
                 if (typeof $scope.selectedFolder.parent != 'undefined') {
                     $scope.parentFolder = $scope.selectedFolder.parent;
@@ -274,11 +305,18 @@
                     typeof $scope.selectedFolder.references.children != 'undefined') {
                     for (cIndex in $scope.selectedFolder.references.children) {
                         var child = $scope.selectedFolder.references.children[cIndex];
-                        if (child.type == 'device') {
-                            Device.constructDevice(child.id, true).then(function(childdevice) {
-                                $scope.devices.push(childdevice);
-                            });
-                        }
+			console.log(child);
+			$scope.devices.push(child);
+                        Device.constructDevice(child.id, true).then(function(childdevice) {
+			    console.log("error occured receiveing child, not\n");
+			    console.log(childdevice);
+                            //$scope.devices.push(childdevice);
+			    $scope.devices[cIndex] = child;
+                        },function(error) { 
+				console.log("error occured receiveing child\n");
+				console.log(error);
+				console.log(child);
+			});
                     }
                 }
                 $scope.isPublishOrOwner = $scope.user.isOwner($scope.selectedFolder.id) ||
