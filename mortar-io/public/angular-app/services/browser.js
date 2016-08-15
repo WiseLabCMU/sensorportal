@@ -6,31 +6,32 @@
 
     app.service('Browser', function(User, Device, $q) {
         this.references = {};
+        //this.parents = {};
+        //this.children = [];
+
         /**
          * Destroy object on logout
          */
         this.destruct = function() {
             var $self = this;
-            $self.references = {};
-            $self.children = [];
+            $self.references = undefined;
+            $self.children = undefined;
+            $self.parents = undefined;
         };
 
-        /**
-         * Init Folder service
-         */
         this.init = function() {
             var $self = this;
             var deferred = $q.defer();
             /**
-             * Children have first id of refrences for device broweser
-             */
+             *              * Children have first id of refrences for device broweser
+             *                           */
             $self.children = [
                 User.rootFolder,
                 User.favoritesFolder
             ];
             /**
-             * Folder service property references is a list of instance of folder
-             */
+             *              * Folder service property references is a list of instance of folder
+             *                           */
             $self.promise = Device.constructDevice(User.rootFolder, true);
             $self.promise.then(function(rootdevice) {
                 $self.references[User.rootFolder] = rootdevice;
@@ -72,32 +73,28 @@
                 deferred.reject("undefined folder");
                 return deferred.promise;
             }
-            var devicetest = Device.constructDevice(strFolderId, false);
-            //if (!devicetest.loaded || typeof devicetest.references == 'undefined') {
-            if (!devicetest.loaded) {
-                Device.constructDevice(strFolderId, true).then(function(device) {
+            Device.constructDevice(strFolderId, true, true).then(
+                function(device) {
+                    if (typeof $self.references[device.id] != 'undefined') {
+                        device.parents = $self.references[device.id].parents;
+                    }
                     $self.references[device.id] = device;
                     for (child_index = 0; child_index < device.children.length; child_index++) {
                         var child = device.children[child_index];
-                        if (typeof $self.references[child] == 'undefined') {
+                        if (typeof $self.references[child] === 'undefined') {
                             $self.references[child] = device.references.children[child];
                         }
+                        if (typeof $self.references[child].parents == 'undefined') {
+                            $self.references[child].parents = {};
+                        }
+                        $self.references[child].parents[device.id] = device;
                     }
                     deferred.resolve(true);
-                }, function(error) {
+                },
+                function(error) {
                     deferred.reject(error);
                 });
-            } else {
-                $self.references[strFolderId] = devicetest;
-                for (child_index = 0; child_index < devicetest.children.length; child_index++) {
-                    var child = devicetest.children[child_index];
-                    if (typeof $self.references[child] == 'undefined') {
-                        $self.references[child] = devicetest.references.children[child];
-                    }
-                }
-                deferred.resolve(true);
-            }
-            return deferred.promise
+            return deferred.promise;
         };
     });
 })();
