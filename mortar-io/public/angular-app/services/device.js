@@ -3,7 +3,6 @@
 	app.factory('Device', function($q, Mio, User, Transducer) {
 
 		var DeviceService = {
-			objFolder: {},
 			devices: {},
 			references: {}
 		};
@@ -18,10 +17,15 @@
 			this.interfaces = null;
 			this.storage = [];
 			this.children = [];
+			this.canActuate = false;
 
 		};
 		Device.prototype = {
 			_handleIqError: function(iq, deferred) {
+				if (typeof iq == 'undefined' || iq == null) { 
+					deferred.reject("Iq undefined");
+					return;
+				}
 				var error = iq.getElementsByTagName('error');
 				var error_code = error[0].getAttribute('code');
 				var error_type = error[0].getAttribute('type');
@@ -76,7 +80,8 @@
 					}
 				}
 				if (typeof transducer.e != 'undefined') {
-					for (enumIndex = 0; enumIndex < transducer.e.length; enumIndex++) {
+					for (enumIndex = 0; enumIndex < 
+					     transducer.e.length; enumIndex++) {
 						var e = transducer.e[enumIndex];
 						var property = {
 							name: e,
@@ -90,6 +95,7 @@
 			_parseTransducer: function(stanza) {
 				return Transducer.constructTransducer(stanza);
 			},
+
 			/* Stanza Builder to build reference stanza from this.references */
 			_getReferencesStanza: function() {
 				var referenceStanza = $build('references', {});
@@ -122,7 +128,7 @@
 				dataStanza.attrs({
 					name: transducer.name,
 					value: value,
-					timestamp: ""
+					timestamp: this.getTimestamp()
 				});
 				return dataStanza.up();
 			},
@@ -151,7 +157,7 @@
 						info: $self.info
 					});
 				}
-				//metaStanza.attrs({timestamp: });
+				metaStanza.attrs({timestamp:  $self.getTimestamp()});
 				if (typeof $self.properties != 'undefined') {
 					for (propIndex in $self.properties) {
 						if ($self.properties.hasOwnProperty(propIndex)) {
@@ -172,7 +178,12 @@
 				if (typeof $self.geolocation != 'undefined') {}
 				return metaStanza.up();
 			},
+			_getTimestamp: function() { 
 
+				var date = new Date();
+				return date.getFullYear()+"-"+(date.getMonth+1)+"-"+date.getDate()+"T"+
+					date.getHours()+":"+date.getMinutes()+":"+date.getSeconds()
+			},
 			/* Parses data from the items stanza
 			 * @param items contain the data items for this device's transducers
 			 */
@@ -181,7 +192,6 @@
 				var data;
 				var data_node, name, tvalue, ttimestamp;
 				var n_data = items[0].childNodes.length;
-
 				if (typeof this.data == 'undefined') {
 					data = [];
 				} else
@@ -201,14 +211,15 @@
 				return data;
 			},
 			_parseGeolocation: function(stanza) {
+				//todo
 
+				return {};
 			},
 			/* Parses meta stanza into this devices meta data 
 			 * @param Element Meta item element*/
 			_parseMetaItem: function(metaItem) {
 				var $self = this;
 				var node, key, value, tran, nodes;
-				console.log(metaItem);
 				if (typeof metaItem.childNodes[0].getAttribute('type') != 'undefined')
 					$self.type = metaItem.childNodes[0].getAttribute('type');
 				if (typeof metaItem.childNodes[0].getAttribute('name') != 'undefined') {
@@ -221,13 +232,10 @@
 					$self.timestamp = metaItem.childNodes[0].getAttribute('timestamp');
 				}
 				nodes = metaItem.childNodes[0].childNodes;
-				console.log("These are the child nodes\n");
-				console.log(nodes);
 				$self.properties = {};
 				$self.transducers = {};
 				for (child_index = 0; child_index < nodes.length; child_index++) {
 					node = nodes[child_index];
-					console.log(node);
 					if (node.tagName == 'property') {
 						key = node.getAttribute('name');
 						value = node.getAttribute('value');
@@ -238,6 +246,9 @@
 					} else if (node.tagName == 'transducer') {
 						tran = $self._parseTransducer(node);
 						$self.transducers[tran.name] = tran;
+						if (tran.isActuable) { 
+							$self.canActuate = true;
+						}
 					} else if (node.tagName == 'geolocation') {
 						$self.geolocation = $self.parseGeolocation(node);
 					} else if (node.tagName == 'interface') {
@@ -253,19 +264,22 @@
 			},
 			_parseReferenceItem: function(referenceItem) {
 				var references;
-				$self = this;
+				var $self = this;
+				
+				var nodes = referenceItem.childNodes;
+				var node, nodeid, type, metaType, name;
+				var reference;
 				if (typeof this.references == 'undefined') {
 					this.references = {};
 					this.references.children = {};
 					this.references.parents = {};
 					this.references.others = {};
+				} else { 
+					references = this.references;
 				}
-				references = this.references;
-				var nodes = referenceItem.childNodes;
-				var node, nodeid, type, metaType, name;
-				var reference;
-				if (typeof $self.children == 'undefined')
+				if (typeof $self.children == 'undefined') {
 					$self.children = [];
+				}
 				for (child_index = 0; child_index < nodes.length; child_index++) {
 					node = nodes[child_index];
 					name = node.getAttribute('name');
@@ -290,7 +304,7 @@
 							references.children[nodeid] = reference;
 							$self.children.push(reference.id);
 						}
-					} else if (type == 'parent')
+					} else if (type == 'parent') { 
 						if (typeof references.parents[nodeid] == 'undefined') {
 							references.parents[nodeid] = reference;
 						} else {
@@ -298,37 +312,20 @@
 								references.others[nodeid] = reference;
 							}
 						}
-				}
-			},
-			contains: function(arr, elem) {
-				for (i in arr) {
-					if (arr[i] == elem) {
-						return true;
 					}
 				}
-				return false;
-
 			},
 			_parseStorageItem: function(storageItem) {
 				var storage;
-				if (typeof this.storage === null) {
-					storage = [];
-				} else {
-					storage = this.storage;
-				}
-
 				var addressesItem = storageItem.childNodes[0];
 				var nodes = addressesItem.childNodes;
 				var address, node, key, found;
-
+				storage = this.storage;
 				for (child_index = 0; child_index < nodes.length; child_index++) {
 				        node = nodes[child_index];
 					address = node.getAttribute('link');
 				        key = node.getAttribute('key');
 					found = false;
-					console.log(key);
-					console.log(address);
-					console.log(storage);
 					for (storage_entry in storage) {
 						if (storage[storage_entry].address == address) {
 				        	        storage[storage_entry].key = key;
@@ -336,9 +333,7 @@
 							break;
 						}
 					}
-
-
-																							if (!found) {
+					if (!found) {
 						storage.push({
 						address: address,
 						key: key
@@ -347,6 +342,9 @@
 				}
 				return storage;
 			},
+			/* init initializes meta references and storage information for a device
+			 *
+			 */
 			init: function() {
 				var $self = this;
 				var deferred = $q.defer();
@@ -361,36 +359,32 @@
 				}
 				$self.user.connection.pubsub.items($self.id,
 					function(stanza) {
-						console.log(stanza);
 						var items = stanza.getElementsByTagName('items');
 						var child, child_index, id;
 						var t_values = [];
 						var n_items = items[0].childElementCount;
-						console.log(n_items);
 						for (child_index = 0; child_index < n_items; child_index++) {
-							console.log("child node");
 							child = items[0].childNodes[child_index];
-							console.log(child);
 							id = child.getAttribute('id');
-							console.log(id);
 							if (id == 'meta') {
 								$self._parseMetaItem(child);
 							} else if (id == 'references') {
 								$self._parseReferenceItem(child.childNodes[0]);
 							} else if (id == 'storage') {
 								$self.storage = $self._parseStorageItem(child);
-							} else if (id[0] == '_') {
-								continue;
 							}
 						}
 						$self.data = $self._parseData(items);
 						deferred.resolve($self);
 					},
 					function(error) {
-						deferred.reject(error);
-					}, 1000000);
+						$self._handleIqError(error,deferred);
+					}, 1000);
 				return deferred.promise;
 			},
+			/* configFormat Generates node configuration from a form
+			 * config configForm, potentially with extra fields such as description.
+			 */
 			configFormat: function(config) { 
 				var configFormatted = {};
 				var arrLen = config.length-1;
@@ -398,51 +392,53 @@
 				var confHold;
 				for (confIndex = 0;confIndex<arrLen;confIndex++) {
 					confHold = config[confIndex];
-					console.log(configIndex);
-					console.log(confHold);
 					configFormatted[confHold['var']] = confHold['value'];
 				}
-				console.log(config);
-				console.log("COnfig formatted");
-				console.log(configFormatted);
 				return configFormatted
-
 			},
+			/* create Generates the event node, the act node, and then publishes
+			 * meta information, storage permissions, etc. */
 			create: function(config) {
 				var $self = this;
 				var deferred = $q.defer();
-				$self.children = [];
-				if (typeof $self.references == 'undefined') {
-					$self.references = {
-						children: {},
-						parents: {},
-						others: {}
-					};
+				var config_deferred = $q.defer();
+				var promises = [];
+				if (typeof $self.config === 'undefined') { 
+					config_deferred = $self.getConfig();
+				} else {
+					config_deferred = $q.defer();
+					config_deferred.resolve($self.config);
 				}
-				console.log(config);
-
-				User.connection.pubsub.createNode(
-					$self.id, $self.configFormat(config),
-					function(result) {
-						var type = result.getAttribute('type');
-						if (type == 'result') {
-							var metaStanza = $self._getMetaStanza();
-							DeviceService.references[$self.id] = $self;
-							DeviceService.devices[$self.id] = $self;
-							Mio.publishItems([{
-								attrs: {
-									id: 'meta'
-								},
-								data: metaStanza.tree()
-							}], deferred, $self.id);
-						} else if (type == 'error') {
-							$self._handleIqError(result, deferred);
-							deferred.reject(result);
-						} else {
-							deferred.reject("Could not create device" + result);
-						}
+				config_deferred.promise.then(function(config_result) { 
+				  User.connection.pubsub.createNode($self.id, $self.configFormat(config),
+				    function(result) {
+					var type = result.getAttribute('type');
+					if (type == 'result') {
+						var metaStanza = $self._getMetaStanza();
+						DeviceService.references[$self.id] = $self;
+						DeviceService.devices[$self.id] = $self;
+						promises.push($self.setMeta());
+						promises.push($self.setReferences());
+						promises.push($self.setStorage());
+						promises.push($self.setPermissions());
+						User.connection.pubsub.createNode($self.id+"_act", 
+										  $self.configFormat(config),
+						   function(result) { 
+							   $q.all(promises).then(function(results ){
+								   deferred.resolve(results);
+							   });
+						   }, 
+						   function(results) { 
+							   deferred.reject(results);
+						   }
+						);
+					} else if (type == 'error') {
+						$self._handleIqError(result, deferred);
+					} else {
+						deferred.reject(result);
 					}
-				);
+				  });
+				});
 				return deferred.promise;
 			},
 			getMeta: function() {
@@ -450,12 +446,12 @@
 				var deferred = $q.defer();
 				Mio.item($self.id, ["meta"], function(stanza) {
 					var items = stanza.getElementsByTagName('items');
-
+					var metaItem;
 					if (items[0].childNodes.length == 0) {
 						deferred.reject("Could not get meta item.");
 						return;
 					}
-					var metaItem = items[0].childNodes[0];
+					metaItem = items[0].childNodes[0];
 					$self._parseMetaItem(metaItem);
 					deferred.resolve(true);
 				}, function(error) {
@@ -466,7 +462,10 @@
 			setMeta: function() {
 				var metaStanza = this._getMetaStanza();
 				var deferred = $q.defer();
-				console.log(metaStanza);
+				if (typeof metaStanza === "undefined") { 
+					deferred.reject("Could not generate a meta stanza");
+					return deferred.promise;
+				}
 				Mio.publishItems([{
 						attrs: {
 							id: "meta"
@@ -480,9 +479,9 @@
 				var $self = this;
 				var deferred = $q.defer();
 				var items = [];
-				for (t_index = 0; t_index < Object.keys($self.transducers).length; t_index++)
+				for (t_index = 0; t_index < Object.keys($self.transducers).length; t_index++) { 
 					items.push("_" + Object.keys($self.transducers)[t_index]);
-
+				}
 				if (items.length == 0) {
 					deferred.reject("No transducers in meta data");
 					return deferred.promise;
@@ -496,16 +495,18 @@
 					$self.data = $self._parseData(items);
 					deferred.resolve(true);
 				}, function(error) {
-					deferred.reject(error);
+					$self._handleIqError(error,deferred);
 				});
 				return deferred.promise;
 			},
 			hasTransducers: function() {
-				if (typeof this.transducers == 'undefined')
+				if (typeof this.transducers === 'undefined') {
 					return false;
+				}
 				// transducers are objects mapping transducer name to transducer
-				if (angular.equals({},this.transducers))
+				if (angular.equals({},this.transducers)) { 
 					return false;
+				}
 				return true;
 			},
 			getReferences: function() {
@@ -514,13 +515,6 @@
 				Mio.item($self.id, ["references"], function(stanza) {
 					var items = stanza.getElementsByTagName('items');
 					if (items[0].childNodes.length == 0) {
-						if (typeof $self.references == 'undefined') {
-							$self.references = {
-								children: {},
-								parents: {},
-								others: {}
-							};
-						}
 						deferred.resolve(true);
 						return;
 					}
@@ -528,7 +522,7 @@
 					$self._parseReferenceItem(referenceItem);
 					deferred.resolve(true);
 				}, function(error) {
-					deferred.reject(error);
+					$self._handlerIqError(error);
 				});
 				return deferred.promise;
 			},
@@ -537,7 +531,6 @@
 				var deferred = $q.defer();
 				Mio.item($self.id, ["storage"], function(stanza) {
 					var items = stanza.getElementsByTagName('items');
-
 					if (items[0].childNodes.length == 0) {
 						deferred.reject("Could not get storage item.");
 						return;
@@ -564,13 +557,12 @@
 							deferred.reject("Could not set storage publisher");
 						}
 					});
-				return deferred
+				return deferred;
 			},
 			actuate: function(transducer, command) {
 				var $self = this;
 				var deferred = $q.defer();
 				data_stanza = $self._getDataStanza(transducer, command.value).tree();
-				console.log(data_stanza);
 				Mio.publishItems([{
 						attrs: {
 							id: '_' + transducer.name
@@ -588,8 +580,6 @@
 					deferred.resolve(true);
 					deferred.promise;
 				}
-
-
 				getRefPromise.then(function(response) {
 					var ref_index, type, ref;
 					for (ref_index = 0; ref_index < references.length; ref_index++) {
@@ -610,6 +600,8 @@
 						},
 						data: datanode
 					}], deferred, $self.id);
+					DeviceService.references[$self.id] = $self;
+					$self.folders = $self.references.children;
 				}, function(error) {
 					deferred.reject("Could not retrieve references.");
 				});
@@ -627,29 +619,32 @@
 					getRefPromise = getRefDeferred.promise;
 				}
 				getRefPromise.then(function(response) {
-					var ref_index, type, ref;
-					for (ref_index = 0; ref_index < references.length; ref_index++) {
+					var ref_index, type, ref, node;
+					for (ref_index = 0; ref_index <references.length; ref_index++) {
+						console.log("removing");
+						console.log(references);
 						ref = references[ref_index];
 						type = ref.type;
-						if (type == 'child') {
-							$self.references.children[ref.node] = '';
-						} else if (type == 'parent') {
-							$self.references.parents[ref.node] = '';
-						} else {
-							$self.references.others[ref.node] = '';
-						}
+						console.log(ref);
+						node = ref.node || ref.id;
+						delete $self.references.children[node];
+						delete $self.references.parents[node];
+						delete $self.references.others[node];
 					}
 					var datanode = $self._getReferencesStanza().tree();
+					console.log(datanode);
 					Mio.publishItems([{
 						attrs: {
 							id: 'references'
 						},
 						data: datanode
 					}], deferred, $self.id);
+					DeviceService.references[$self.id] = $self;
+					DeviceService.devices[$self.id] = $self;
+					$self.folders = $self.references.children;
 				}, function(error) {
 					deferred.reject("Could not retrieve references.");
 				});
-
 				return deferred.promise;
 			},
 			getSubOptions: function() {
@@ -737,10 +732,20 @@
 				});
 				return deferred.promise;
 			},
-			addAffiliation: function(jid, affiliation) {
+			addAffiliation: function(jid, affiliation, isAct) {
 				var deferred = $q.defer();
 				var $self = this;
-				User.connection.pubsub.setAffiliation($self.id, jid, affiliation,
+				var id;
+				if (typeof isAct === "undefined") { 
+					isAct = false;
+				}
+				if (isAct) {
+					id = $self.id + "_act";
+				} else { 
+					id = $self.id;
+				}
+
+				User.connection.pubsub.setAffiliation(id, jid, affiliation,
 					function(result) {
 						var type = result.getAttribute('type');
 						if (type == 'result') {
@@ -760,7 +765,6 @@
 				for (childIndex in this.folders) {
 					child = this.folders[childIndex];
 					if (child.name == name || child.label == name) {
-						console.log(child);
 						return child;
 					}
 				}
@@ -896,7 +900,7 @@
 		DeviceService.constructDevice = function(id, initialize,reload) {
 			var device;
 			var devices = DeviceService.devices;
-			var toLoad = false;
+			var loaded_device = false;
 			if (typeof reload === 'undefined') { 
 				reload = false;
 			}
@@ -921,22 +925,24 @@
 			} else {
 				device = devices[id];
 				device.loaded = true;
-				console.log("Device was loaded");
 				var deferred = $q.defer();
-				if (initialize) { 
-					deferred.resolve(device);
-				} else { 
-					return device;
+				if (!reload) { 
+					if (initialize) { 
+						deferred.resolve(device);
+						return deferred.promise;
+					} else { 
+						return device;
+					}
 				}
 			}
-			if (initialize) {
+			if (initialize || reload) {
 				var deferred = $q.defer();
 				device.init().then(function(result) {
 					if (loaded_device) {
 						device.folders = device.references.children;
-						devices[id] = device;
-					} else {
-						DeviceService.references[device.id] = device;
+						DeviceService.devices[device.id] = device;
+					} else { 
+						DeviceService.devices[device.id] = device;
 					}
 					deferred.resolve(device);
 				}, function(error) {
