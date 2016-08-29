@@ -10,6 +10,15 @@
             <label for="foldername">Folder Name</label>
             <input class="form-control" type="text" name="foldername" ng-model="folder.name"  id="foldername" required />
         </div>
+	<div class="form-group">
+            <label for="foldername">Folder Type</label>
+ 	    <input type="radio" ng-model="folder.type" value="device" />Device
+     	    <input type="radio" ng-model="folder.type" value="location" />Location
+     	    <input type="radio" ng-model="folder.type" value="gateway" />Gateway
+     	    <input type="radio" ng-model="folder.type" value="agent" />Agent
+     	    <input type="radio" ng-model="folder.type" value="other" />Other
+	    <br />
+        </div>
 	<!--<div class="row" ng-if="!folder.isFavorite">-->
         <div class="row" >
             <div class="col-md-5">
@@ -36,17 +45,6 @@
         <div ng-if="!isRootOrFavorite" ng-cloak>
             <h3>Select folder location:</h3>
             <span ng-if="isUpdate">Current :{{folder.parent.name}}</span>
-            <!--<div
-                data-tree-view="true"
-                data-tree-id="modalBrowser"
-                data-tree-show-search="false" 
-                data-node-callback="selectDevice"
-                data-collection-callback="selectFolder"
-                data-hide-device="true"
-                data-hide-root="!showRoot"
-                data-selected-folder="selectedFolder"
-                data-expand-all="true">
-	    </div>-->
 <div
                 data-tree-view="true"
                 data-tree-id="modalBrowser"

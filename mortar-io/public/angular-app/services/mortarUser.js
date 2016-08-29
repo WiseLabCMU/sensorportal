@@ -3,18 +3,18 @@
      * MortarUser services
      */
     var app = angular.module('mortar-user-services', ['xml-rpc', 'user-services', 'mio-services']);
-//,'rt.timeout'
-    app.factory('MortarUser', function($http, $q, User, xmlrpc,$timeout) {
+    //,'rt.timeout'
+    app.factory('MortarUser', function($http, $q, User, xmlrpc, $timeout) {
 
         var MortarUser = function(name, email, username) {
-            this.username = username.slice(0,username.indexof('@'));
+            this.username = username.slice(0, username.indexof('@'));
             this.domain = username.slice(username.indexof('@'));
             this.name = name;
             this.requests = {};
             this.email = email;
-	    this.favoritesFolder = username.slice(0,username.indexof('@'))+'_Favorites';
-	    this.rootFolder = 'root';
-	    this.group = 'user';
+            this.favoritesFolder = username.slice(0, username.indexof('@')) + '_Favorites';
+            this.rootFolder = 'root';
+            this.group = 'user';
         }
 
         MortarUser.prototype = {
@@ -38,13 +38,10 @@
         //Todo
         // updates the data of an user on frontend
         // moved to getVCard under user.js
-
-
-
         var MortarUserFactory = {
             requests: {},
             user: {},
-	    users: {},
+            users: {},
 
             //Todo switch to vcards and rosters
             /**
@@ -55,38 +52,47 @@
             get: function(username) {
                 var $self = this;
                 var deferred = $q.defer();
-		var timeoutpromise = $timeout(function() {
-			console.log("tiemout\n!!!!!!!!!!!!!!!!!!!\n");
-			deferred.resolve({username:username});
-		}, 5000);
+                var timeoutpromise = $timeout(function() {
+                    deferred.resolve({
+                        username: username
+                    });
+                }, 5000);
                 User.connection.vcard.get(function(iq) {
-		    $timeout.cancel(timeoutpromise);
-                    var Card = vCard.parse(iq.childNodes[0].textContent);
                     var email;
-		    var name;
-                    if (typeof Card.email != 'undefined') { 
+                    var name;
+                    var user_vcard;
+                    var Card = vCard.parse(iq.childNodes[0].textContent);
+                    $timeout.cancel(timeoutpromise);
+                    if (typeof Card.email != 'undefined') {
                         email = Card.email[0].value;
-		    }
+                    }
                     if (typeof Card.fn != 'undefined') {
                         name = Card.fn[0].value;
-		    }
-		    var newUser = {username: username.slice(0,username.indexOf('@')), 
-			    name: name, email:email,group:'user',
-			    rootFolder: 'root', 
-			    favoritesFolder: username.slice(0,username.indexOf('@')) +
-				    '_Favorites'};
+                    }
+                    user_vcard = {
+                        username: username.slice(0, username.indexOf('@')),
+                        name: name,
+                        email: email,
+                        group: 'user',
+                        rootFolder: 'root',
+                        favoritesFolder: username.slice(0, username.indexOf('@')) +
+                            '_Favorites'
+                    };
                     deferred.resolve(newUser);
-
                 }, username, function(iq) {
-		   $timeout.cancel(timeoutpromise);
-		   var newUser = {username: username.slice(0,username.indexOf('@')), 
-			    name: "", email:"",group:'user',
-			    rootFolder: 'root', 
-			    favoritesFolder: username.slice(0,username.indexOf('@')) +
-				    '_Favorites'};
+                    var newUser = {
+                        username: username.slice(0, username.indexOf('@')),
+                        name: "",
+                        email: "",
+                        group: 'user',
+                        rootFolder: 'root',
+                        favoritesFolder: username.slice(0, username.indexOf('@')) +
+                            '_Favorites'
+                    };
+                    $timeout.cancel(timeoutpromise);
                     deferred.resolve(newUser);
                 });
-		return deferred.promise;
+                return deferred.promise;
             },
 
             rpcCommand: function(command, args) {
@@ -107,19 +113,63 @@
                     server: host,
                     password: password
                 }, {
-                    host: host 
+                    host: host
                 }];
-		$self.promises = [];
+                $self.promises = [];
                 var rpcpromise = this.rpcCommand('registered_users', args);
-		return rpcpromise;
+                return rpcpromise;
             },
-	    saveUser: function(user) { 
-		    var $self = this;
-		    var promises = [];
-		    var promise;
-		    promise = $q.all(promises);
-		    return promise;
-	    },
+            saveUser: function(user) {
+                var $self = this;
+                var promises = [];
+                var promise;
+                var args;
+                args = [{
+                    user: user.user,
+                    server: User.connection.domain,
+                    password: User.connection.password
+                }, {
+                    host: host,
+                    name: email,
+                    content: user.email
+                }];
+                promises.push(this.rpcCommand('setVcard', args));
+
+                args = [{
+                    user: user.user,
+                    server: User.connection.domain,
+                    password: User.connection.password
+                }, {
+                    host: host,
+                    name: "FN",
+                    content: user.name
+                }];
+                promises.push(this.rpcCommand('setVcard', args));
+
+                args = [{
+                    user: user.user,
+                    server: User.connection.domain,
+                    password: User.connection.password
+                }, {
+                    host: host,
+                    name: "favorites",
+                    content: user.favoritesFolder
+                }];
+                promises.push(this.rpcCommand('setVcard', args));
+
+                args = [{
+                    user: user.user,
+                    server: User.connection.domain,
+                    password: User.connection.password
+                }, {
+                    host: host,
+                    name: "root",
+                    content: user.rootFolder
+                }];
+                promises.push(this.rpcCommand('setVcard', args));
+                promise = $q.all(promises);
+                return promise;
+            },
 
             /**
              * Resets the user's password to a new one he gives.
@@ -159,9 +209,10 @@
              * @param  string username use who forgot hes password
              * @return promise
              */
+            // todo forgot password
             forgotPassword: function(username) {
                 var deferred = $q.defer();
-                $http.post('api/user/' + username + '/send_recovery')
+                /*$http.post('api/user/' + username + '/send_recovery')
                     .success(function(response) {
                         if (response.error) {
                             deferred.reject(response.message);
@@ -171,7 +222,7 @@
                         deferred.resolve(response.message);
                     }).error(function(response) {
                         deferred.reject('Something wrong with the server');
-                    });
+                    });*/
                 return deferred.promise;
             },
 
@@ -181,8 +232,8 @@
              * @return mixed
              */
             create: function(data) {
-		var $self = this;
-		var password = User.connection.pass;
+                var $self = this;
+                var password = User.connection.pass;
                 var host = User.connection.domain;
                 var user = User.connection.authcid;
 
@@ -191,26 +242,26 @@
                     server: host,
                     password: password
                 }, {
-		    user: data.username,
-                    host: host ,
-		    password: data.password
+                    user: data.username,
+                    host: host,
+                    password: data.password
                 }];
-		var promise = $self.rpcCommand('register',args).then((function(response) {
+                var promise = $self.rpcCommand('register', args).then((function(response) {
                     if (response.error) {
                         return;
                     }
-		    return response;
-                },function(response) {
+                    return response;
+                }, function(response) {
                     console.log(response);
                     //deferred.reject('Something wrong with the server. User could not be created');
-		    return response;
+                    return response;
                 }));
                 return promise;
             },
-	    
+
             delete: function(username) {
-		var $self = this;
-		var password = User.connection.pass;
+                var $self = this;
+                var password = User.connection.pass;
                 var host = User.connection.domain;
                 var user = User.connection.authcid;
                 var args = [{
@@ -218,21 +269,21 @@
                     server: host,
                     password: password
                 }, {
-		    user: username,
-                    host: User.connection.domain 
+                    user: username,
+                    host: User.connection.domain
                 }];
-		var promise = $self.rpcCommand('unregister',args).then((function(response) {
+                var promise = $self.rpcCommand('unregister', args).then((function(response) {
                     if (response.error) {
                         return;
                     }
-		    for (user in $self.users) {
-			    if (username == $self.users[user]) {
-				    $self.users.split(user,1);
-				    break;
-			    }
-		    }
-	            
-		},function(response) {
+                    for (user in $self.users) {
+                        if (username == $self.users[user]) {
+                            $self.users.split(user, 1);
+                            break;
+                        }
+                    }
+
+                }, function(response) {
                     console.log(response);
                     deferred.reject('Something wrong with the server. User could not be created');
                 }));

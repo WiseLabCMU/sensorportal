@@ -2,7 +2,9 @@
  * User controller module
  */
 (function() {
-    var app = angular.module('user-controller', ['ui.router', 'mortar-services', 'mortar-directives', 'cgBusy', 'angularTreeview', 'ui.bootstrap', 'xml-rpc','rt.timeout']);
+    var app = angular.module('user-controller', ['ui.router', 'mortar-services', 'mortar-directives',
+        'cgBusy', 'angularTreeview', 'ui.bootstrap', 'xml-rpc', 'rt.timeout'
+    ]);
 
     //Todo
     /**
@@ -13,34 +15,36 @@
      * @param  service $modal service to create modal windows
      * @author Jairo Diaz Montero <jairo.diaz.montero.07@gmail.com>
      */
-    app.controller('UsersCtrl', function($scope, Alert, MortarUser, $modal, User,$q,$timeout) {
+    app.controller('UsersCtrl', function($scope, Alert, MortarUser, $modal, User, $q, $timeout) {
+        // todo extend to people who do not have xmlrpc access
         $scope.users = [];
-	 $scope.usersGetPromise = MortarUser.getUsers().then(
-	    function(response) {
-		if (typeof response == 'undefined') { 
-			console.log("Undefined response");
-			return null;
-		}
-	        if (typeof response.error != 'undefined') {
-			console.log("response.error");
-			return response.error;
-		}
-		var promises = [];
-		var domainTag = "@" + User.connection.domain;
-		$scope.users=response.users;
-		for(userIndex in response.users) {
-			user = response.users[userIndex];
-			user.userIndex = userIndex;
-			promises.push(MortarUser.get(user.username+domainTag).then(function(userResponse) {
-			$scope.users[user.userIndex] = userResponse;
-			}));
-	    	}
-            	if (response.messages) {
-                     Alert.open('warning', response.messages);
+        $scope.usersGetPromise = MortarUser.getUsers().then(
+            function(response) {
+                if (typeof response == 'undefined') {
+                    return null;
                 }
-        }, function(response) {
-            Alert.open('warning', response);
-        });
+                if (typeof response.error != 'undefined') {
+                    console.log("response.error");
+                    console.log(response.error);
+                    return response.error;
+                }
+                var promises = [];
+                var domainTag = "@" + User.connection.domain;
+                $scope.users = response.users;
+                for (userIndex in response.users) {
+                    user = response.users[userIndex];
+                    user.userIndex = userIndex;
+                    promises.push(MortarUser.get(user.username + domainTag).then(function(userResponse) {
+                        $scope.users.push(userResponse);
+                    }));
+                }
+                if (response.messages) {
+                    Alert.open('warning', response.messages);
+                }
+            },
+            function(response) {
+                Alert.open('warning', response);
+            });
         // todo
         /**
          * removes an user
@@ -103,23 +107,23 @@
      * @author Jairo Diaz Montero <jairo.diaz.montero.07@gmail.com> 
      */
     app.controller('UserProfileCtrl', function($scope, $stateParams, User, $state, $modal, MortarUser, Alert) {
-	var user;
-	if (typeof $stateParams.username == 'undefined') { 
-	    console.log("USername undefined");
-	    user = "";
-        } else if ($stateParams.username.indexOf('@')>=0) {
-        	user = $stateParams.username;
-	} else {
-        	user = $stateParams.username+'@'+User.connection.domain;
-	}
-	
-        $scope.getUserPromise = MortarUser.get(user).then(function(result) {
-		$scope.user = result;
-	},function(errorstanza) { 
-		Alert.open('warning',errorstanza);
-	});
+        var user;
+        if (typeof $stateParams.username == 'undefined') {
+            console.log("Username undefined");
+            user = "";
+        } else if ($stateParams.username.indexOf('@') >= 0) {
+            user = $stateParams.username;
+        } else {
+            user = $stateParams.username + '@' + User.connection.domain;
+        }
 
-        $scope.showDevices = false;
+        $scope.getUserPromise = MortarUser.get(user).then(function(result) {
+            $scope.user = result;
+        }, function(errorstanza) {
+            Alert.open('warning', errorstanza);
+        });
+
+        $scope.showDevices = true;
         $scope.allowDelete = false;
         if (User.isAdmin() && $stateParams.username != User.username) {
             $scope.allowDelete = true;
@@ -164,7 +168,6 @@
             }
         }
 
-        //Todo
         /**
          * redirects to detail of selected node depending on the node type
          * @param object node  Device or Folder object to view detail
@@ -183,7 +186,6 @@
     });
 
 
-    //Todo
     /**
      * Controller to create and update user
      * @param  object  $scope scope of the controller
@@ -194,7 +196,7 @@
      * @param  service  Alert service instance to manage user messages
      * @author Jairo Diaz Montero <jairo.diaz.montero.07@gmail.com> 
      */
-    app.controller('UserCreateEditCtrl', function($scope, $modalInstance, User, MortarUser, username, Alert, Browser,Device) {
+    app.controller('UserCreateEditCtrl', function($scope, $modalInstance, User, MortarUser, username, Alert, Browser, Device) {
         $scope.user = {};
         $scope.devBrowserUserRoot = {};
         $scope.userRootFolder = {};
@@ -217,10 +219,10 @@
             $scope.getUserPromise = MortarUser.get(username);
             $scope.getUserPromise.then(function(response) {
                 $scope.user = response;
-                $scope.getFolderPromise = Device.constructDevice($scope.user.rootFolder,true);
+                $scope.getFolderPromise = Device.constructDevice($scope.user.rootFolder, true);
                 $scope.getFolderPromise.then(function(folder) {
                     $scope.userRootFolder = folder;
-		    $scope.userCopy = folder;
+                    $scope.userCopy = folder;
                     Browser.references[$scope.user.rootFolder] = $scope.userRootFolder;
                     $scope.selectedFolder = $scope.user.rootFolder;
                     $scope.folderLoaded = true;
@@ -247,18 +249,18 @@
             if ($scope.isEdit) {
                 $scope.saveUserPromise = MortarUser.save($scope.userCopy);
                 $scope.saveUserPromise.then(function(response) {
-		    $scope.user = $scope.userCopy;
+                    $scope.user = $scope.userCopy;
                     MortarUser.getUsers().then(
-			    function(response) { 
-				    $scope.users = users;
-			    }
-		    	);
-                        Alert.open('success', response);
-                        $modalInstance.close(true);
-                    }, function(response) {
-                        $modalInstance.close(true);
-                    });
-		} else {
+                        function(response) {
+                            $scope.users = users;
+                        }
+                    );
+                    Alert.open('success', response);
+                    $modalInstance.close(true);
+                }, function(response) {
+                    $modalInstance.close(true);
+                });
+            } else {
                 var data = {
                     name: $scope.user.name,
                     email: $scope.user.email,
@@ -267,17 +269,17 @@
                     password: $scope.user.password,
                     password2: $scope.user.password2,
                     root_folder: $scope.user.rootFolder,
-		    favorites_folder: $scope.user.favoritesFolder
+                    favorites_folder: $scope.user.favoritesFolder
                 };
 
                 $scope.createUserPromise = MortarUser.create(data);
                 $scope.createUserPromise.then(function(response) {
                     Alert.open('success', response);
-		    MortarUser.getUsers().then(
-			    function(response) { 
-				    $scope.users = users;
-			    }
-		    );
+                    MortarUser.getUsers().then(
+                        function(response) {
+                            $scope.users = users;
+                        }
+                    );
                     $modalInstance.close(true);
                 }, function(response) {
                     $scope.cp.error = true;
@@ -313,15 +315,6 @@
         $scope.user.favoritesFolder = username.concat(username, '_Favorites');
         $scope.userCopy = {};
 
-        /*if (username === 'admin'){
-          $scope.user.group = 'admin';
-        } else{
-          $scope.user.group = 'user';
-        }
-        $scope.userTypes = [
-          {value: 'admin',label:'Administrator'},
-          {value: 'user',label:'User'}
-        ];*/
         $scope.isModalCanceled = false;
 
         //Todo inband registration
@@ -337,20 +330,14 @@
             };
             if ($scope.user.email != '') User.name = $scope.user.name;
             if ($scope.user.email != '') User.email = $scope.user.email;
-            //User.group = $scope.user.group;
-            //User.username = $scope.user.username;
-            //User.rootFolder = $scope.user.rootFolder;
-            //User.favoritesFolder = $scope.user.favoritesFolder;
-
-            //$scope.createUserPromise = User.saveUser(data);
             $scope.createUserPromise = User.setVcard(User.name, User.email);
             $scope.createUserPromise.then(function(response) {
-                //Alert.open('success',response);
                 $modalInstance.close(false);
                 $scope.cp.error = false;
             }, function(response) {
                 $scope.cp.error = true;
                 $scope.cp.errorMessage = response;
+                Alert.open('error', response);
             }, function(response) {
                 $scope.cp.error = true;
                 $scope.cp.errormessage = response;
