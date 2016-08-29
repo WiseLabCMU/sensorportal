@@ -28,10 +28,13 @@
                     value = node.getAttribute('value');
                     this.properties[key] = value;
                 } else if (node.tagName == 'map') {
-		    this.unit = 'enum';
+                    this.unit = 'enum';
                     name = node.getAttribute('name');
                     value = node.getAttribute('value');
-                    this.e[parseInt(value)] = {name:name, value:value};
+                    this.e[parseInt(value)] = {
+                        name: name,
+                        value: value
+                    };
                 }
             }
         };

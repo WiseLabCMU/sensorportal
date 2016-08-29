@@ -14,7 +14,7 @@
      * @param  object $scope    scope of the controller
      * @param  service $http    angulars $http service
      * @param  service $state   ui router state service
-     * @param  {[type]} $stateParams [description]
+     * @param  {[type]} $staeParams [description]
      * @param  factory User     User factory instance
      * @param  {[type]} Device       [description]
      * @param  {[type]} Alert        [description]
@@ -26,7 +26,7 @@
         $scope.device = null;
         $scope.devices = [];
         $scope.permittedDevices = User.permittedDevices.publisher;
-        $scope.subscribeDevices = User.permittedDevices.subscribed;
+        $scope.subscribedDevices = User.permittedDevices.subscribed;
         $scope.ownerDevices = User.permittedDevices.owner;
         $scope.subscrbValidator = {
             isSubscribe: false,
@@ -43,12 +43,10 @@
                 }, function(error) {
                     Alert.open('Could not load current device\'s parent', error);
                 });
-            }
+            }/*, function(result) {
+                // todo go back to previous state.
+            }*/
         });
-	$scope.reload = function() { 
-		$route.reload();
-	};
-
 
         /**
          * subscribe Subscribe a user to the current device
@@ -79,6 +77,7 @@
             });
         };
     });
+    // todo: get maps back in.
     app.controller('DeviceMapCtrl', function($scope, $stateParams, Device) {
         $scope.folder = $stateParams.folder;
         $scope.device = typeof $stateParams.device != 'undefined' ? $stateParams.device : null;
@@ -94,31 +93,43 @@
         $scope.$watch('device', function() {
             Device.constructDevice($stateParams['id'], true).then(function(device) {
                 $scope.device = device;
+            }, function(result) {
+                // todo: go to previous state.
             });
         });
     });
+
     /**
      * Controller for managing device detail view
-     * @param  object $scope  
-     * @param  service $http  
-     * @param  factory Device 
-     * @param  factory User           
+     * @param  object $scope
+     * @param  service $http
+     * @param  factory Device
+     * @param  factory User
      */
     app.controller('DeviceViewCtrl', function($scope, $state, $stateParams, Device,
         User, $location, $window, Alert) {
         var modalInstance;
-        $scope.user = User;
+        var intervalDelay = 5000; // 5 seconds
         $scope.qrString = $location.$$absUrl;
+        $scope.intervalPromise = $interval($scope.device.getData(),intervalDelay);
+        $rootScope.$on('$stateChangeStart',
+            function(event, toState, toParams, fromState, fromParams){
+              $scope.intervalPromise.cancel();
+        });
+        //todo when is this watch triggered
         $scope.$watch('device', function() {
             if ($scope.device == null) {
                 Device.constructDevice($stateParams['id'], true).then(
                     function(device) {
                         $scope.device = device;
+                    }, function(result) {
+                        //todo: go back to previous state.
                     });
             }
         });
 
     });
+
     /**
      * [description]
      * @param  {[type]} $scope    [description]
@@ -131,10 +142,10 @@
      */
     //todo update device when that changes
     app.controller('DeviceTransducersCtrl', function($scope, $http,
-        $stateParams, $interval, Device,
-        Alert, User) {
+        $stateParams, $interval, Device, Alert, User) {
+        var updateInterval = 5000; // 5 seconds
         $scope.user = User;
-        $scope.$watch('device', function() { // update transducers value each 3 minutes  
+        $scope.$watch('device', function() { // update transducers value each 3 minutes
             if ($scope.device != null && angular.isDefined($scope.device.transducers)) {
                 $scope.device.getData();
             }
@@ -143,7 +154,7 @@
             if ($scope.device != null && angular.isDefined($scope.device.transducers)) {
                 $scope.device.getData();
             }
-        }, UPDATE_TRANSDUCER_INTERVAL, 1);
+        }, updateInterval, 1);
 
         // on scope change (destroy) cancel interval
         $scope.$on('$destroy', function() {
@@ -162,10 +173,9 @@
     app.controller('DeviceModalCtrl', function($scope, User, $modalInstance, $state,
         $stateParams, $upload, $window, $modal,
         Device, Alert, Browser, $q) {
-        $scope.parentDevice = {};
         $scope.user = User;
-        $scope.showAutomap = false;
-        $scope.$watch('device', function() {
+        $scope.parentDevice = {};
+        $scope.$watch(function(){return $scope.device;}, function() {
             if ($scope.device == null) {
                 Device.constructDevice($stateParams['id']).then(function(device) {
                     $scope.device = device;
@@ -187,8 +197,6 @@
                 });
             }
         });
-
-        //toDo reintroduce automap getpossibles
 
         //toDo Update Geolocation form
         /**
@@ -220,7 +228,7 @@
 
         /**
          * isNotSelect callback function to determine if folder is already
-         * selected. 
+         * selected.
          * @param  Folder objFolder Folder object
          */
         $scope.isNotSelect = function() {
@@ -241,10 +249,10 @@
                 }
             });
             modalInstance.result.then(function(objFolder) {
-                //$scope.parentDevice.selectNodeLabel(Browser.references[objFolder.id]);
                 $scope.parentDevice.selectNodeLabel(Browser.references[objFolder.id]);
             });
         };
+
         /**
          * addFolder callback function to pass to browser directive
          */
@@ -278,7 +286,6 @@
         $scope.submitDevice = function() {
             var hasNewParent = $scope.device.getParent().id != $scope.selectedFolder.id;
             $scope.device.save().then(function(response) {
-                Alert.open('success', response);
                 if (typeof $scope.device.parent != 'undefined' && $scope.device.parent.id &&
                     $scope.parent.id != $scope.selectedFolder.id) {
                     Devices.references[$scope.device.parent.id].getChildren();
@@ -293,8 +300,9 @@
             }, function(error) {
                 $scope.cp.error = true;
                 $scope.cp.errorMessage = error;
+                //todo error formatting
+                Alert.open(error);
             });
-
         };
         /**
          * cancel the current modal opened
@@ -311,16 +319,14 @@
      * @param  Device current device
      * @param  User   current user
      */
-    app.controller('DeviceTimeSeriesCtrl', function($scope, Device, User) {
+    app.controller('DeviceTimeSeriesCtrl', function($rootScope, $scope, Device, User) {
         $scope.user = User;
-        $scope.$watch('device', function() {
-            if ($scope.device != null) {
-                if (angular.isUndefined($scope.device.transducers)) {
-                    $scope.device.getMeta();
-                }
-            }
+        var intervalDelay = 5000; // 5 seconds
+        $scope.intervalPromise = $interval($scope.device.getData(),intervalDelay);
+        $rootScope.$on('$stateChangeStart',
+            function(event, toState, toParams, fromState, fromParams){
+              $scope.intervalPromise.cancel();
         });
-
     });
     /**
      * [description]
@@ -409,8 +415,8 @@
      * @param  {[type]} $timeout       [description]
      * @return {[type]}                [description]
      */
-    app.controller('DevFavoritesModalCtrl', function($scope, $modal, $modalInstance, $state, $stateParams, 
-						     User, Alert, Device, Browser, $q, $timeout) {
+    app.controller('DevFavoritesModalCtrl', function($scope, $modal, $modalInstance, $state, $stateParams,
+        User, Alert, Device, Browser, $q, $timeout) {
         $scope.devBrowserFavorites = {};
         Browser.children = [User.favoritesFolder];
         $scope.newFavorites = [];
@@ -559,7 +565,7 @@
         };
         /**
          * isFolderNotSelect check if there is a folder select
-         * @return Boolean 
+         * @return Boolean
          */
         $scope.isFolderNotSelect = function() {
             return $scope.newFavorites.length <= 0;

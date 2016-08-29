@@ -1,29 +1,14 @@
-
-
 <div class="container-fluid" > 
-	<li ui-sref-active="active> 
-	 <input type="file" name="csvfile_data" ng-file-select="onFileSelect($files)" id="csvfile_data" />
-	</li>
-<li ui-sref-active active="active">
+	<h2>What would you like to register?</h2>
 	<li ui-sref-active="active">
-		<a href="#" ui-sref="devicecreate.template({type:'device'})">Device</a>
+		<a href="#" ui-sref="devicecreate.templateselect({type:'device'})">Device</a>
 	</li>
 	<li ui-sref-active="active">
-		<a href="#" ui-sref="devicecreate.template({type:'adapter'})">Adapter</a>
+		<a href="#" ui-sref="devicecreate.templateselect({type:'adapter'})">Adapter</a>
 	</li>
 	<li ui-sref-active="active">
-		<a href="#" ui-sref="devicecreate.template({type:'gateway'})">Gateway</a>
+		<a href="#" ui-sref="devicecreate.templatetype()">Template</a>
 	</li>
-	<li ui-sref-active="active">
-		<a href="#" ui-sref="devicecreate.template({type:'location'})">Location</a>
-	</li>
-	<li ui-sref-active="active">
-		<a href="#" ui-sref="devicecreate.template({type:'reference'})">Reference</a>
-	</li>
-	<li ui-sref-active="active">
-		<a href="#" ui-sref="devicecreate.template({type:'collection'})">Collection</a>
-	</li>
-
 </div>
 </form>
 												    </div>

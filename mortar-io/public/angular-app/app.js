@@ -453,6 +453,8 @@
      * @param  factory User     user model
      */
     app.run(function($rootScope, $state, User, Alert, $location) { //,Monitor
+        $rootScope.lastState;
+        $rootScope.lastParams;
         $rootScope.$on("$stateChangeStart", function(event, next, toParams, fromState) {
             if (typeof fromState.data != 'undefined' && !fromState.data.isModal) {
                 Alert.close();
@@ -465,8 +467,7 @@
                     event.preventDefault();
                     // set user state data to redirect if necessary
                     angular.copy(next, User.state);
-                    User.state.params = toParams;
-
+                    User.state.toParams = toParams;
                     Alert.open('warning', 'You need to be logged in');
                     $state.go('login');
                     return;
@@ -484,6 +485,10 @@
                 $state.go(fromState.name);
                 return;
             }
+        });
+        $rootScope.$on('$stateChangeSuccess', function(event, to, toParams, from, fromParams) {
+            angular.copy(from.name, $rootScope.lastState);
+            agnular.copy(fromParams, $rootScope.lastParams);
         });
     });
 })();

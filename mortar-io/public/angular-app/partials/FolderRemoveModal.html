@@ -5,7 +5,18 @@
 	<div class="modal-body">
             <h4>Reference to remove:</h4>
 	    <span >Name: {{selectedFolder.name}} <br> ID:  {{selectedFolder.id}}</span><br>
-	    <span >Parent: {{selectedFolder.parents[0].name}}  </span> <br>
+	    <span >Parent: {{ parents[0].name }}
+ 
+		      <!-- <div class="btn-group" uib-dropdown is-open="isopen">
+			            <button id="single-button" type="button" class="btn " uib-dropdown-toggle >
+					     <span class="caret"></span>
+						          </button>
+		    <ul class="dropdown-menu" uib-dropdown-menu aria-labelledby="simple-dropdown">
+		            <li ng-repeat="f in parents">
+			    <a href>{{f.name}}</a>
+		              </li>
+		            </ul></span><br>
+		    </div> -->
 	    <div
                 data-tree-view="true"
                 data-tree-id="modalBrowser"

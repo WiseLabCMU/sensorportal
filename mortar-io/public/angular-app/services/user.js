@@ -76,6 +76,11 @@
             return this.isOwner(nodeId) || this.isPublisher(nodeId);
         }
 
+        //todo: //
+        this.change_password = function(iq) {
+
+        }
+
         this.on_message = function(iq) {
                 console.log(iq);
                 return true;
@@ -95,9 +100,13 @@
             $self.favoritesFolder = username.substring(0, at_index) + "_Favorites";
             $self.rootFolder = "root";
             $self.username = username;
+            $self.password = username;
+            $self.domain = username.substring(at_index + 1, username.length);
+            console.log("Domain : " + $self.domain);
 
             xmlrpc.config({
-                hostname: "127.0.0.1",
+                hostname: '127.0.0.1',
+                //hostname: $self.domain,
                 pathName: "/RPC2", // Default is /rpc2
                 401: function() {
                     console.log("You shall not pass !");
@@ -178,10 +187,10 @@
          * Saves the user in the browser's session
          */
         this.saveSession = function() {
-            $window.sessionStorage.setItem("User", JSON.stringify({
-                username: this.username,
-                password: this.password
-            }));
+            /* $window.sessionStorage.setItem("User", JSON.stringify({
+                 username: this.username,
+                 password: this.password
+             }));*/
             //$window.sessionStorage.setItem("User", this);
         };
         //Todo, make sure that this is updated when user.js is complete
@@ -265,9 +274,9 @@
         this.getVcard = function(jid) {
             var deferred = $q.defer();
             $self = this;
-	    if (jid == null) { 
-            	jid = $self.username;
-	    }
+            if (jid == null) {
+                jid = $self.username;
+            }
             this.connection.vcard.get(function(iq) {
                 var Card = vCard.parse(iq.childNodes[0].textContent);
                 $self.vCard = Card;
