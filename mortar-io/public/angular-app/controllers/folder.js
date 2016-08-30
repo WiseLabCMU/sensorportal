@@ -272,7 +272,8 @@
         if ($scope.isUpdate) {
             //@todo edit function to get all data from folder
             $scope.folder = Device.objFolder;
-            $scope.loadFolder = Device.constructDevice($stateParams['folders'], true);
+            $scope.loadFolder = Device.constructDevice($stateParams['folders'],
+                true, true);
             $scope.loadFolder.then(function(device) {
                 Device.objFolder = device;
                 $scope.folder = device;
@@ -293,34 +294,29 @@
          */
         $scope.onFileSelect = function($files) {
                 $scope.folder.file = $files[0];
-            }
-            /**
-             * Submit the necesarry data to update or create a folder
-             */
+        }
+        /**
+         * Submit the necesarry data to update or create a folder
+         */
         $scope.submitFolder = function() {
-            if ($scope.isUpdate) { //Check if is for update
-                console.log("isUpdate");
+            if ($scope.isUpdate) {
                 $scope.folder.publishMeta();
-                $scope.addReferences([{
-                    id: $scope.selectedFolder.id,
-                    name: $scope.selectedFolder.name,
-                    type: 'parent',
-                    metaType: selectedFolder.metaType
-                }]).
-                then(function(response) {
-                    $scope.selectedFolder.addReferences(
+                if (typeof $scope.selectedFolder == 'defined') {
+                    $scope.addReferences([{
+                        id: $scope.selectedFolder.id,
+                        name: $scope.selectedFolder.name,
+                        type: 'parent',
+                        metaType: selectedFolder.metaType
+                      }]);
+                      $scope.selectedFolder.addReferences(
                         [{
                             id: $scope.folder.id,
                             name: $scope.folder.name,
                             type: 'child',
                             metaType: folder.metaType
-                        }]).
-                    then(function(result) {
-                        $modalInstance.close([selectedFolder.id, tmpFolder.id]);
-                        Alert.open('Success, updated ' + tmpFolder.id);
-                    });
-                });
-
+                        }]);
+                }
+                $modalInstance.close([selectedFolder.id, tmpFolder.id]);
             } else {
                 if (typeof $scope.selectedFolder.id == 'undefined') {
                     $scope.selectedFolder.id = null;
@@ -330,7 +326,6 @@
                 tmpFolder.mapUri = $scope.folder.mapUri;
                 tmpFolder.mapUriUrl = $scope.folder.mapUriUrl;
                 tmpFolder.name = $scope.folder.name;
-                tmpFolder.references = {};
                 $scope.modalDeferred = $q.defer()
                 $scope.modalPromise = $scope.modalDeferred.promise;
                 $scope.savingPromise = tmpFolder.create();
@@ -354,7 +349,7 @@
                         $q.all(folderAddPromises).then(function(result) {
                             Browser.loadChildren($scope.selectedFolder.id);
                             Alert.open('success', response.message);
-                            $scope.modalPromise.resolve(true);
+                            $scope.modalDeferred.resolve(true);
                             $modalInstance.close(true);
                         }, function(result) {
                             Alert.open('Failed adding references ' +
