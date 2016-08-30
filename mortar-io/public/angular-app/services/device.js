@@ -128,7 +128,7 @@
                 dataStanza.attrs({
                     name: transducer.name,
                     value: value,
-                    timestamp: this.getTimestamp()
+                    timestamp: this._getTimestamp()
                 });
                 return dataStanza.up();
             },
@@ -140,7 +140,7 @@
             /*build meta stanza for this event node
              */
             _getMetaStanza: function() {
-                $self = this;
+                var $self = this;
                 var metaStanza = $build('meta', {});
                 if (typeof $self.name != 'undefined') {
                     metaStanza.attrs({
@@ -158,7 +158,7 @@
                     });
                 }
                 metaStanza.attrs({
-                    timestamp: $self.getTimestamp()
+                    timestamp: $self._getTimestamp()
                 });
                 if (typeof $self.properties != 'undefined') {
                     for (propIndex in $self.properties) {
@@ -402,7 +402,6 @@
                 var $self = this;
                 var deferred = $q.defer();
                 var config_deferred = $q.defer();
-                var promises = [];
                 if (typeof $self.config === 'undefined') {
                     console.log("Getting config");
                     config_deferred = $self.getConfig();
@@ -417,15 +416,15 @@
                         function(result) {
                             var type = result.getAttribute('type');
                             if (type == 'result') {
-                                console.log("type is result");
+                                var promises = [];
                                 DeviceService.references[$self.id] = $self;
                                 DeviceService.devices[$self.id] = $self;
+                                console.log($self.id);
                                 promises.push($self.setMeta());
                                 promises.push($self.setReferences());
                                 if ($self.storage.length > 0) {
                                     promises.push($self.setStorage());
                                 }
-                                promises.push($self.setPermissions());
                                 var actPromise = $q.defer();
                                 promises.push(actPromise.promise);
                                 User.connection.pubsub.createNode($self.id + "_act",
@@ -465,19 +464,23 @@
                 return deferred.promise;
             },
             setMeta: function() {
-                var metaStanza = this._getMetaStanza();
+                var $self = this;
+                var metaStanza = $self._getMetaStanza();
                 var deferred = $q.defer();
                 if (typeof metaStanza === "undefined") {
+                    console.log("coud not get meta stanza");
                     deferred.reject("Could not generate a meta stanza");
                     return deferred.promise;
                 }
+                console.log("metaStanza");
+                console.log(metaStanza);
                 Mio.publishItems([{
                         attrs: {
                             id: "meta"
                         },
                         data: metaStanza.tree()
                     }],
-                    deferred, this.id);
+                    deferred, $self.id);
                 return deferred.promise;
             },
             getData: function() {
@@ -652,11 +655,20 @@
                 });
                 return deferred.promise;
             },
+            _hasReferences: function() {
+
+                var $self = this;
+                var refs = Object.keys($self.references.children).length +
+                  Object.keys($self.references.parents).length +
+                  Object.keys($self.references.others).length;
+                return refs>0;
+            },
             setReferences: function() {
                 var deferred = $q.defer();
                 var $self = this;
                 var getRefPromise;
                 if (typeof $self.references == 'undefined') {
+                    console.log("references undefined");
                     deferred.resolve({});
                     return deferred.promise;
                 } else {
@@ -664,11 +676,12 @@
                     getRefDeferred.resolve(true);
                     getRefPromise = getRefDeferred.promise;
                 }
-                /*if ($self.references.children {
-                  deferred.resolve();
+                if (!$self._hasReferences()) {
+                  deferred.resolve(false);
                   return deferred.promise;
-                }*/
+                }
                 var datanode = $self._getReferencesStanza().tree();
+                console.log("datanode");
                 console.log(datanode);
                 Mio.publishItems([{
                   attrs: {
@@ -678,7 +691,6 @@
                 }], deferred, $self.id);
                 DeviceService.references[$self.id] = $self;
                 DeviceService.devices[$self.id] = $self;
-                $self.folders = $self.references.children;
                 return deferred.promise;
             },
             getSubOptions: function() {
