@@ -488,7 +488,7 @@
         });
         $rootScope.$on('$stateChangeSuccess', function(event, to, toParams, from, fromParams) {
             angular.copy(from.name, $rootScope.lastState);
-            agnular.copy(fromParams, $rootScope.lastParams);
+            angular.copy(fromParams, $rootScope.lastParams);
         });
     });
 })();

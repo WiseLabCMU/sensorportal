@@ -137,7 +137,7 @@
                     return this.transducers[key];
                 });
             },
-            /*build meta stanza for this event node 
+            /*build meta stanza for this event node
              */
             _getMetaStanza: function() {
                 $self = this;
@@ -217,7 +217,7 @@
 
                 return {};
             },
-            /* Parses meta stanza into this devices meta data 
+            /* Parses meta stanza into this devices meta data
              * @param Element Meta item element*/
             _parseMetaItem: function(metaItem) {
                 var $self = this;
@@ -404,36 +404,41 @@
                 var config_deferred = $q.defer();
                 var promises = [];
                 if (typeof $self.config === 'undefined') {
+                    console.log("Getting config");
                     config_deferred = $self.getConfig();
                 } else {
                     config_deferred = $q.defer();
                     config_deferred.resolve($self.config);
+                    config_deferred = config_deferred.promise;
                 }
-                config_deferred.promise.then(function(config_result) {
-                    User.connection.pubsub.createNode($self.id, $self.configFormat(config),
+                config_deferred.then(function(config_result) {
+                    User.connection.pubsub.createNode($self.id, $self.
+                      configFormat($self.config),
                         function(result) {
                             var type = result.getAttribute('type');
                             if (type == 'result') {
-                                var metaStanza = $self._getMetaStanza();
+                                console.log("type is result");
                                 DeviceService.references[$self.id] = $self;
                                 DeviceService.devices[$self.id] = $self;
                                 promises.push($self.setMeta());
                                 promises.push($self.setReferences());
-                                promises.push($self.setStorage());
+                                if ($self.storage.length > 0) {
+                                    promises.push($self.setStorage());
+                                }
                                 promises.push($self.setPermissions());
+                                var actPromise = $q.defer();
+                                promises.push(actPromise.promise);
                                 User.connection.pubsub.createNode($self.id + "_act",
-                                    $self.configFormat(config),
+                                    $self.configFormat($self.config),
                                     function(result) {
-                                        $q.all(promises).then(function(results) {
-                                            deferred.resolve(results);
-                                        });
-                                    },
-                                    function(results) {
-                                        deferred.reject(results);
+                                        actPromise.resolve(result);
                                     }
                                 );
-                            } else if (type == 'error') {
-                                $self._handleIqError(result, deferred);
+                                $q.all(promises).then(function(results) {
+                                      deferred.resolve(results);
+                                    }, function(results) {
+                                      deferred.reject(results);
+                                });
                             } else {
                                 deferred.reject(result);
                             }
@@ -647,6 +652,35 @@
                 });
                 return deferred.promise;
             },
+            setReferences: function() {
+                var deferred = $q.defer();
+                var $self = this;
+                var getRefPromise;
+                if (typeof $self.references == 'undefined') {
+                    deferred.resolve({});
+                    return deferred.promise;
+                } else {
+                    var getRefDeferred = $q.defer();
+                    getRefDeferred.resolve(true);
+                    getRefPromise = getRefDeferred.promise;
+                }
+                /*if ($self.references.children {
+                  deferred.resolve();
+                  return deferred.promise;
+                }*/
+                var datanode = $self._getReferencesStanza().tree();
+                console.log(datanode);
+                Mio.publishItems([{
+                  attrs: {
+                      id: 'references'
+                      },
+                      data: datanode
+                }], deferred, $self.id);
+                DeviceService.references[$self.id] = $self;
+                DeviceService.devices[$self.id] = $self;
+                $self.folders = $self.references.children;
+                return deferred.promise;
+            },
             getSubOptions: function() {
                 var deferred = $q.defer();
                 var $self = this;
@@ -779,11 +813,15 @@
                 var deferred = $q.defer();
                 if (!defaultConfig) {
                     User.connection.pubsub.getDefaultNodeConfig(function(result) {
+                        console.log(result);
                         var type = result.getAttribute('type');
                         if (type == 'result') {
                             var x = result.getElementsByTagName('x');
                             $self.config = [];
-                            for (configIndex = 0; configIndex < x[0].childNodes.length; configIndex++) {
+                            console.log(x[0].childNodes.length);
+                            for (configIndex = 0;
+                              configIndex < x[0].childNodes.length;
+                              configIndex++) {
                                 var field = x[0].childNodes[configIndex];
                                 var v = field.getAttribute('var');
                                 var conftype = field.getAttribute('type');
@@ -802,8 +840,8 @@
                                     value: value
                                 });
                             }
-                            deferred.resolve(true);
-                        } else if (type == 'errror') {
+                            deferred.resolve($self.config);
+                        } else if (type == 'error') {
                             $self._handleIqError(result, deferred);
                         } else {
                             deferred.reject(result);
@@ -812,10 +850,12 @@
 
                 } else {
                     User.connection.pubsub.getConfig($self.id, function(result) {
+                        console.log(result);
                         var type = result.getAttribute('type');
                         if (type == 'result') {
                             var x = result.getElementsByTagName('x');
                             $self.config = {};
+                            console.log(x[0].childNodes.length);
                             for (configIndex = 0; configIndex < x[0].childNodes.length; configIndex++) {
                                 var field = x[0].childNodes[configIndex];
                                 var v = field.getAttribute('var');
@@ -830,7 +870,7 @@
                                     var: v
                                 };
                             }
-                            deferred.resolve(true);
+                            deferred.resolve($self.config);
                         } else if (type == 'errror') {
                             $self._handleIqError(result, deferred);
                         } else {
