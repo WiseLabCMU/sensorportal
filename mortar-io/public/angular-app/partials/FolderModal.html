@@ -27,9 +27,6 @@
                     <input type="file" name="folder.properties['mapUri']" ng-file-select="onFileSelect($files)" accept="image/*" id="folder.properties['mapUri']" />
                 </div>
             </div>
-            <div class="col-md-1">
-                <strong> OR</strong>
-            </div>
             <div class="col-md-6">
 		    <div class="form-group" ng-if="user.isAdmin()">
                 <div class="form-group" >
@@ -48,7 +45,7 @@
 <div
                 data-tree-view="true"
                 data-tree-id="modalBrowser"
-                data-tree-show-search="false" 
+                data-tree-show-search="false"
                 data-node-callback="selectDevice"
                 data-collection-callback="selectFolder"
                 data-hide-device="true"
@@ -59,7 +56,7 @@
         </div>
     </div>
     <div class="modal-footer">
-        <div cg-busy="savingPromise"></div>
+        <div cg-busy="modalPromise"></div>
         <input type="button" class="link-button" ng-click="cancel()" value="Cancel"/>
         <button type="submit" class="btn blue-btn" ng-show="isUpdate" ng-disabled="form.$invalid || isFolderNotSelect()">Update</button>
         <button type="submit" class="btn blue-btn" ng-show="!isUpdate" ng-disabled="form.$invalid || isFolderNotSelect()">Create</button>

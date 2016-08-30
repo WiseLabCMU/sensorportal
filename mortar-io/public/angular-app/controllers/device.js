@@ -23,7 +23,6 @@
         Device, Alert) {
         $scope.folder = Device;
         $scope.user = User;
-        $scope.device = null;
         $scope.devices = [];
         $scope.permittedDevices = User.permittedDevices.publisher;
         $scope.subscribedDevices = User.permittedDevices.subscribed;
@@ -106,15 +105,22 @@
      * @param  factory Device
      * @param  factory User
      */
-    app.controller('DeviceViewCtrl', function($scope, $state, $stateParams, Device,
-        User, $location, $window, Alert) {
+    app.controller('DeviceViewCtrl', function($rootScope,
+      $scope, $state, $stateParams, Device,
+        User, $location, $window, Alert,$interval) {
         var modalInstance;
         var intervalDelay = 5000; // 5 seconds
         $scope.qrString = $location.$$absUrl;
-        $scope.intervalPromise = $interval($scope.device.getData(),intervalDelay);
+        Device.constructDevice($stateParams['id'], true).then(function(device) {
+                $scope.device = device;
+                $scope.intervalPromise = $interval(
+                  function() {$scope.device.getData()},intervalDelay);
+            }, function(result) {
+                // todo: go to previous state.
+        });
         $rootScope.$on('$stateChangeStart',
             function(event, toState, toParams, fromState, fromParams){
-              $scope.intervalPromise.cancel();
+              $interval.cancel($scope.intervalPromise);
         });
         //todo when is this watch triggered
         $scope.$watch('device', function() {
@@ -141,7 +147,7 @@
      * @return {[type]}           [description]
      */
     //todo update device when that changes
-    app.controller('DeviceTransducersCtrl', function($scope, $http,
+    app.controller('DeviceTransducersCtrl', function($scope, $http, $interval,
         $stateParams, $interval, Device, Alert, User) {
         var updateInterval = 5000; // 5 seconds
         $scope.user = User;
@@ -150,7 +156,7 @@
                 $scope.device.getData();
             }
         });
-        var i = $interval(function() {
+        var interval = $interval(function() {
             if ($scope.device != null && angular.isDefined($scope.device.transducers)) {
                 $scope.device.getData();
             }
@@ -158,7 +164,7 @@
 
         // on scope change (destroy) cancel interval
         $scope.$on('$destroy', function() {
-            $interval.cancel(i);
+            $interval.cancel(interval);
         });
     });
 
@@ -319,13 +325,14 @@
      * @param  Device current device
      * @param  User   current user
      */
-    app.controller('DeviceTimeSeriesCtrl', function($rootScope, $scope, Device, User) {
+    app.controller('DeviceTimeSeriesCtrl', function($rootScope, $interval,
+      $scope, Device, User) {
         $scope.user = User;
         var intervalDelay = 5000; // 5 seconds
-        $scope.intervalPromise = $interval($scope.device.getData(),intervalDelay);
+        $scope.intervalPromise = $interval(function() {$scope.device.getData();},intervalDelay);
         $rootScope.$on('$stateChangeStart',
             function(event, toState, toParams, fromState, fromParams){
-              $scope.intervalPromise.cancel();
+              $interval.cancel($scope.intervalPromise);
         });
     });
     /**
@@ -338,11 +345,11 @@
      * @param  {[type]} $interval [description]
      * @return {[type]}           [description]
      */
-    app.controller('DeviceFunctionsCtrl', function($scope, User, Device, Alert, $interval) {
+    app.controller('DeviceFunctionsCtrl', function($scope, $stateParams, User, Device, Alert, $interval) {
         $scope.user = User;
-
         $scope.command = {};
         $scope.command.value = "";
+        var intervalDelay = 1000;
         $scope.$watch('device', function() {
             if ($scope.device != null) {
                 if (angular.isUndefined($scope.device.transducers)) {
@@ -350,16 +357,21 @@
                 }
             }
         });
+
+          Device.constructDevice($stateParams['id'], true).then(function(device) {
+                $scope.device = device;
+                $scope.intervalPromise = $interval(
+                  function() {$scope.device.getData()},intervalDelay);
+            }, function(result) {
+                // todo: go to previous state.
+        });
         // update transducers value each 3 minutes
-        var i = $interval(function() {
-            if ($scope.device != null && angular.isDefined($scope.device.transducers)) {
-                $scope.device.getData();
-            }
-        }, UPDATE_TRANSDUCER_INTERVAL, 1);
 
         // on scope change (destroy) cancel interval
         $scope.$on('$destroy', function() {
-            $interval.cancel(i);
+            if (typeof $scope.intervalPromsie != 'undefined') {
+                $interval.cancel($scope.intervalPromise);
+            }
         });
 
         /**

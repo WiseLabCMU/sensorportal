@@ -52,12 +52,9 @@
                 id: objDevice.id
             });
         };
-        $scope.reload = function() {
-                $route.reload();
-            }
-            /**
-             * addFolder callback function to pass to browser directive
-             */
+        /**
+         * addFolder callback function to pass to browser directive
+         */
         $scope.addFolder = function(param) {
             $scope.modalInstance = $modal.open({
                 templateUrl: 'angular-app/partials/FolderModal.html',
@@ -145,7 +142,7 @@
         };
 
         /**
-         * removeFolder removes reference to a device. 
+         * removeFolder removes reference to a device.
          */
         $scope.removeFolder = function() {
             $self.deferred = $q.defer();
@@ -220,7 +217,7 @@
                 return typeof $scope.selectedFolder == 'undefined';
             }
             /**
-             * Close the create folder modal 
+             * Close the create folder modal
              */
         $scope.cancel = function() {
             $modalInstance.dismiss();
@@ -246,7 +243,9 @@
      * @param  {[type]} Device         [description]
      * @return {[type]}                [description]
      */
-    app.controller('FolderModalCtrl', function($scope, $modalInstance, $state, $stateParams, $upload, $window, fromModal, Alert, Favorite, Browser, User, Device, uuid4) {
+    app.controller('FolderModalCtrl', function($scope, $q, $modalInstance,
+        $state, $stateParams, $upload, $window, fromModal, Alert, Favorite,
+        Browser, User, Device, uuid4) {
         $scope.user = User;
         $scope.favorite = Favorite;
         $scope.modalBrowser = {};
@@ -300,6 +299,7 @@
              */
         $scope.submitFolder = function() {
             if ($scope.isUpdate) { //Check if is for update
+                console.log("isUpdate");
                 $scope.folder.publishMeta();
                 $scope.addReferences([{
                     id: $scope.selectedFolder.id,
@@ -331,50 +331,56 @@
                 tmpFolder.mapUriUrl = $scope.folder.mapUriUrl;
                 tmpFolder.name = $scope.folder.name;
                 tmpFolder.references = {};
+                $scope.modalDeferred = $q.defer()
+                $scope.modalPromise = $scope.modalDeferred.promise;
                 $scope.savingPromise = tmpFolder.create();
                 $scope.savingPromise.then(function(response) {
-                    tmpFolder.addReferences([{
-                        id: $scope.selectedFolder.id,
-                        name: $scope.selectedFolder.name,
-                        type: 'parent',
-                        metaType: 'location'
-                    }]).then(function(result) {
-                        if (typeof $scope.selectedFolder != 'undefined') {
-                            $scope.selectedFolder.addReferences([{
-                                id: tmpFolder.id,
-                                name: tmpFolder.name,
-                                type: 'child',
-                                metaType: 'location'
-                            }]).then(function(result) {
-                                Browser.loadChildren($scope.selectedFolder.id);
-                                Alert.open('success', response.message);
-                                $modalInstance.close(true);
-                            }, function(error) {
-                                Alert.open('Failed adding reference to parent ' +
-                                    $scope.selectedFolder.name);
-                                $modalInstance.close(true);
-                            });
-                        } else {
-                            Alert.open('Success, created ' + tmpFolder.id);
-                            $modalInstace.close(true);
-                        }
-                    }, function(error) {
-                        Alert.open("Could not add reference to created device " + error);
-                    });
+                    console.log("Folder saved");
+                    if (typeof $scope.selectedFolder != 'undefined') {
+                        var folderAddPromises = [];
+                        folderAddPromises.push(tmpFolder.addReferences([{
+                            id: $scope.selectedFolder.id,
+                            name: $scope.selectedFolder.name,
+                            type: 'parent',
+                            metaType: 'location'
+                        }]));
+                        folderAddPromises.push($scope.selectedFolder.
+                          addReferences([{
+                            id: tmpFolder.id,
+                            name: tmpFolder.name,
+                            type: 'child',
+                            metaType: 'location'
+                        }]));
+                        $q.all(folderAddPromises).then(function(result) {
+                            Browser.loadChildren($scope.selectedFolder.id);
+                            Alert.open('success', response.message);
+                            $scope.modalPromise.resolve(true);
+                            $modalInstance.close(true);
+                        }, function(result) {
+                            Alert.open('Failed adding references ' +
+                                $scope.selectedFolder.name);
+                            $modalInstance.close(true);
+                        });
+                    } else {
+                        Alert.open('Success, created ' + tmpFolder.id);
+                        $scope.modalPromise.resolve(true);
+                        $modalInstace.close(true);
+                    }
                 }, function(error) {
-                    Alert.open('Failure ' + error);
-                    return;
+                    Alert.open("Could not add reference to created device " + error);
+                    $scope.modalPromise.resolve(error);
+                    $modalInstance.close();
                 });
-
-                //todo create a new folder
             }
         };
         /**
          * selectFolder callback function to call inside the browser
          * @param  Folder folder object selected in the browser
          */
-        $scope.selectFolder = function(folder) {
-            $scope.selectedFolder = folder;
+        $scope.selectFolder = function(objFolder) {
+            Device.constructDevice(objFolder.id, true).then(function(folder) {
+                $scope.selectedFolder = folder;
+            });
         };
         /**
          * isFolderNotSelect validate if there is a folder select int browser
@@ -384,7 +390,7 @@
                 return typeof $scope.selectedFolder == 'undefined';
             }
             /**
-             * Close the create folder modal 
+             * Close the create folder modal
              */
         $scope.cancel = function() {
             $modalInstance.dismiss();
@@ -404,15 +410,15 @@
     });
     /**
      * Controller to manage Device List
-     * @param  service $scope       
-     * @param  service $http        
-     * @param  service $state       
+     * @param  service $scope
+     * @param  service $http
+     * @param  service $state
      * @param  service $stateParams
-     * @param  object  $window 
+     * @param  object  $window
      * @param  service Alert
      * @param  factory User
      * @param  factory Folder
-     * @param  service Browser        
+     * @param  service Browser
      */
     app.controller('FolderViewCtrl', function($scope, $state, $stateParams,
         $window, $route, Alert, User, Device, Browser) {
