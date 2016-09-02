@@ -47,7 +47,8 @@
             onEnter: function($state, $modal, $stateParams) {
                 $modal.open({
                     templateUrl: '/angular-app/partials/device-permissions.html',
-                    controller: 'DeviceSetPermissionsCtrl'
+                    controller: 'DeviceSetPermissionsCtrl',
+                    controllerAs: 'dspc'
                 }).result.then(function(result) {
                     if (result) {
                         if (typeof $stateParams['isFolder'] != 'undefined') {
@@ -192,7 +193,7 @@
             }
         }).
         state('devicecreate.config', {
-            url: '/devicecreate/config/?id?type',
+            url: '/devicecreate/config/?id?type?uuid',
             templateUrl: '/angular-app/partials/devicecreate-config.html',
             controller: 'DeviceCreateConfigCtrl',
             data: {

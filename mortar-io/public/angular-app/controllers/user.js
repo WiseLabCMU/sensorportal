@@ -92,9 +92,6 @@
         };
     });
 
-
-
-    //Todo
     /**
      * Controller to show user detail
      * @param  object $scope  scope of the controller
@@ -104,7 +101,7 @@
      * @param  service $modal modal service to create and handle modal actions
      * @param  factory MortarUser factory instance to manage user models
      * @param  service Alert service to handle messages to user
-     * @author Jairo Diaz Montero <jairo.diaz.montero.07@gmail.com> 
+     * @author Jairo Diaz Montero <jairo.diaz.montero.07@gmail.com>
      */
     app.controller('UserProfileCtrl', function($scope, $stateParams, User, $state, $modal, MortarUser, Alert) {
         var user;
@@ -128,8 +125,6 @@
         if (User.isAdmin() && $stateParams.username != User.username) {
             $scope.allowDelete = true;
         }
-
-        //todo
         // open up a modal to change the password of an user
         $scope.changePassword = function() {
                 $modal.open({
@@ -154,8 +149,8 @@
                     return deferred.promise;
                 }
                 return MortarUser.get($scope.user.username);
-            }
-            // removes an user from users
+        }
+        // removes an user from users
         $scope.deleteUser = function() {
             if (confirm('Are you sure to delete this user?')) {
                 $scope.deleteUserPromise = MortarUser.delete($scope.user.username);
@@ -189,12 +184,12 @@
     /**
      * Controller to create and update user
      * @param  object  $scope scope of the controller
-     * @param  object  $modalInstance modal instance to manage 
-     * @param  service MortarUser  service instance to manage user actions 
+     * @param  object  $modalInstance modal instance to manage
+     * @param  service MortarUser  service instance to manage user actions
      * @param  string  username user username to load on edit
      * @param  service  User service instance to manage logged in user actions
      * @param  service  Alert service instance to manage user messages
-     * @author Jairo Diaz Montero <jairo.diaz.montero.07@gmail.com> 
+     * @author Jairo Diaz Montero <jairo.diaz.montero.07@gmail.com>
      */
     app.controller('UserCreateEditCtrl', function($scope, $modalInstance, User, MortarUser, username, Alert, Browser, Device) {
         $scope.user = {};
@@ -293,16 +288,16 @@
             $modalInstance.close(true);
         };
     });
-    //ToDo
+    
     /**
      * Controller to create and update user
      * @param  object  $scope scope of the controller
-     * @param  object  $modalInstance modal instance to manage 
-     * @param  service MortarUser  service instance to manage user actions 
+     * @param  object  $modalInstance modal instance to manage
+     * @param  service MortarUser  service instance to manage user actions
      * @param  string  username user username to load on edit
      * @param  service  User service instance to manage logged in user actions
      * @param  service  Alert service instance to manage user messages
-     * @author Jairo Diaz Montero <jairo.diaz.montero.07@gmail.com> 
+     * @author Jairo Diaz Montero <jairo.diaz.montero.07@gmail.com>
      */
     app.controller('UserInitCtrl', function($scope, $modalInstance, MortarUser,
         username, password, User, Alert, Browser) {
@@ -357,8 +352,8 @@
      *Controller to manage user password change
      *@param object $scope scope for this user
      *@param object $modalInstance modal passed to controller
-     *@param service Alert service to manage messages to user 
-     *@param string strUsername username of user to change password 
+     *@param service Alert service to manage messages to user
+     *@param string strUsername username of user to change password
      *@param factory MortarUser factory instance to manage user models
      *@param service User service instance to manage logged in user actions
      *@author Jairo Diaz Montero <jairo.diaz.montero.07@gmail.com>

@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <div class="modal-header">
   <h3 class="modal-title">{{isEdit ? 'Edit' : 'Add'}} User</h3>
 </div>
@@ -66,7 +67,7 @@
             data-tree-view="true"
             data-folders="folders"
             data-tree-id="devBrowserUserRoot"
-            data-selected-folder="userRootFolder"            
+            data-selected-folder="userRootFolder"
             data-tree-show-search="false"
             data-node-callback="selectDevice"
             data-collection-callback="selectFolder"
@@ -79,8 +80,8 @@
       </div>
     </div>
   </div>
-  <div class="modal-footer">   
+  <div class="modal-footer">
     <input type="button" class="btn link-button" ng-click="cancel()" value="Cancel">
     <button ng-click="saveUser(user)" class="btn blue-btn" ng-disabled="AddEditUserForm.$invalid">{{isEdit ? 'Save changes' : 'Add user'}}</button>
-  </div>  
+  </div>
 </form>
