@@ -67,8 +67,13 @@
                 }
             });
             $scope.modalInstance.result.then(function(refreshIds) {
+                console.log("refreshIds");
+                console.log(refreshIds);
                 for (var refreshIndex in refreshIds) {
-                    Device.constructDevice(refreshIds[refreshIndex], true, true);
+                    Device.constructDevice(refreshIds[refreshIndex], true,
+                      true).then( function(device) {
+                        Browser.loadChildren(refreshIds[refreshIndex]);
+                      });
                 }
             });
         };
@@ -215,10 +220,11 @@
          */
         $scope.isFolderNotSelect = function() {
                 return typeof $scope.selectedFolder == 'undefined';
-            }
-            /**
-             * Close the create folder modal
-             */
+        }
+
+        /**
+         * Close the create folder modal
+         */
         $scope.cancel = function() {
             $modalInstance.dismiss();
         };
@@ -353,16 +359,16 @@
                             Browser.loadChildren($scope.selectedFolder.id);
                             Alert.open('success', response.message);
                             $scope.modalDeferred.resolve(true);
-                            $modalInstance.close(true);
+                            $modalInstance.close([$scope.selectedFolder.id ]);
                         }, function(result) {
                             Alert.open('Failed adding references ' +
                                 $scope.selectedFolder.name);
-                            $modalInstance.close(true);
+                            $modalInstance.close([]);
                         });
                     } else {
                         Alert.open('Success, created ' + tmpFolder.id);
                         $scope.modalPromise.resolve(true);
-                        $modalInstace.close(true);
+                        $modalInstace.close([]);
                     }
                 }, function(error) {
                     Alert.open("Could not add reference to created device " + error);
@@ -386,10 +392,10 @@
          */
         $scope.isFolderNotSelect = function() {
                 return typeof $scope.selectedFolder == 'undefined';
-            }
-            /**
-             * Close the create folder modal
-             */
+        }
+        /**
+         * Close the create folder modal
+         */
         $scope.cancel = function() {
             $modalInstance.dismiss();
         };
@@ -420,33 +426,24 @@
      */
     app.controller('FolderViewCtrl', function($scope, $state, $stateParams,
         $window, $route, Alert, User, Device, Browser) {
-        $scope.devices = [];
-        $scope.parentFolder = null;
-        $scope.stelectedFolderId = "";
-        $scope.selectedFolder = {
-            "references": null
-        };
 
         /**
          * initFolder get the current Folder
          * @param  string strFolderId Folder ID
          */
         $scope.initFolder = function(strFolderId) {
-            Device.constructDevice(strFolderId, true, true).then(function(device) {
+            Device.constructDevice(strFolderId, true, true).then(
+              function(device) {
                 $scope.selectedFolder = device;
                 if (typeof $scope.selectedFolder.parent != 'undefined') {
                     $scope.parentFolder = $scope.selectedFolder.parent;
                 }
                 $scope.isRootOrFavorite = ($scope.selectedFolder.id == User.favoritesFolder) ||
                     ($scope.selectedFolder.id == User.rootFolder);
-                if (typeof $scope.selectedFolder.parent != 'undefined') {
-                    Browser.loadChildren($scope.selectedFolder.parent.id);
-                }
-                //Browser.loadChildren(strFolderId);
+
                 $scope.devices = [];
                 if (typeof $scope.selectedFolder.references != 'undefined' &&
                     typeof $scope.selectedFolder.references.children != 'undefined') {
-                    console.log($scope.selectedFolder.references.children);
                     for (cIndex in $scope.selectedFolder.references.children) {
                         var child = $scope.selectedFolder.references.children[cIndex];
                         console.log(child);
@@ -467,6 +464,9 @@
 
         if (typeof $stateParams.folder != 'undefined') {
             $scope.initFolder($stateParams.folder);
+        } else {
+           Alert.open('warning', "Folder list cannot list unspecified folder");
+           $state.go($rootScope.lastState, $rootscope.lastParams);
         }
         /**
          * [isOwner description]

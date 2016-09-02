@@ -7,12 +7,12 @@
     ]);
     /**
      * Controller for managing user login / logout
-     * @param  object $scope 
-     * @param  service MortarUser  
-     * @param  service $scope.user  
-     * @param  service $http 
+     * @param  object $scope
+     * @param  service MortarUser
+     * @param  service $scope.user
+     * @param  service $http
      * @param  service $state
-     * @param  service Alert 
+     * @param  service Alert
      * @param  service Folder
      * @param  service $modal
      */
@@ -21,7 +21,7 @@
         $scope.user = User;
 
         /**
-         * Authenticates the user. 
+         * Authenticates the user.
          */
         $scope.login = function() {
             if (!$scope.username.includes("@")) {
@@ -32,16 +32,11 @@
                 $scope.userInfoPost = User.getVcard();
                 $scope.userInfoPost.then(function(success) {
                     Browser.init().then(function(result) {
-                        if (typeof User.state.name != 'undefined') {
-                            $state.go(User.state.name, User.state.params);
-                            return;
-                        }
                         $state.go('device.list', {
                             folder: User.rootFolder
                         });
                     });
                 }, function(response) {
-                    // open modal to initialize user vcard attributes
                     var modalInstance = $modal.open({
                         templateUrl: 'angular-app/partials/initModal.html',
                         controller: 'UserInitCtrl',
@@ -99,35 +94,36 @@
 
     /**
      * [description]
-     * @param  object $scope        
+     * @param  object $scope
      * @param  service $modalInstance
-     * @param  service $scope.user          
+     * @param  service $scope.user
      */
     app.controller('ForgotPasswordController', function($scope, $modal, User, MortarUser) {
         $scope.cp = {
             username: '',
             error: false,
             errorMessage: ''
-        };
+    };
 
-        /**
-         * Sends an email to the user to change password
-         * on success closes the modal, if not, notifies the user of error.
-         */
-        //todo
-        $scope.forgotPassword = function() {
-                /* $scope.cp.emailPromise = User.forgotPassword($scope.cp.username);
-                 $scope.cp.emailPromise.then(function(result) {
-                     $modalInstance.close(result);
-                 }, function(result) {
-                     $scope.cp.error = true;
-                     $scope.cp.errorMessage = result;
-                 });*/
-            }
-            /**
-             * Dismisses the modal
-             */
-        $scope.cancel = function() {
+    /**
+     * Sends an email to the user to change password
+     * on success closes the modal, if not, notifies the user of error.
+     */
+    //todo
+    $scope.forgotPassword = function() {
+      /* $scope.cp.emailPromise = User.forgotPassword($scope.cp.username);
+      $scope.cp.emailPromise.then(function(result) {
+          $modalInstance.close(result);
+      }, function(result) {
+          $scope.cp.error = true;
+          $scope.cp.errorMessage = result;
+      });*/
+    }
+
+    /**
+     * Dismisses the modal
+     */
+    $scope.cancel = function() {
             $modal.dismiss();
         }
     });
@@ -153,9 +149,8 @@
          * on success takes the user to the login screen.
          * on error displays alert with message
          */
-        //todo
         $scope.resetPassword = function() {
-            /*$scope.changePassword = User.resetPassword($scope.rp.username, $scope.rp.password, 
+            /*$scope.changePassword = User.resetPassword($scope.rp.username, $scope.rp.password,
 							      $scope.rp.passwordConfirm, $scope.rp.token);
             $scope.changePassword.then(function(result) {
                 $state.go('login');

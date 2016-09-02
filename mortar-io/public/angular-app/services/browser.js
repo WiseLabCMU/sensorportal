@@ -55,7 +55,7 @@
                 deferred.reject("undefined folder");
                 return deferred.promise;
             }
-            Device.constructDevice(strFolderId, true, false).then(
+            Device.constructDevice(strFolderId, true).then(
                 function(device) {
                     if (typeof $self.references[device.id] != 'undefined') {
                         device.parents = $self.references[device.id].parents;
