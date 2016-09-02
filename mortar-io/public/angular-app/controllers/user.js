@@ -288,7 +288,7 @@
             $modalInstance.close(true);
         };
     });
-    
+
     /**
      * Controller to create and update user
      * @param  object  $scope scope of the controller
