@@ -203,18 +203,14 @@
             }
 
             function channelDatasource(userId, deviceName, channelName) {
-                var urlPrefix;
-		console.log("HEREE");
-		console.log(urlDomains[scope.device.id][0]);
+                var urlPrefix = "/tiles/" + userId + "/" + deviceName + "." + channelName + "/";
+		var urlPostfix = "";
 		if (typeof urlDomains[scope.device.id][0].key != 'undefined') { 
-			console.log("KEY : " + urlDomains[scope.device.id][0].key);
-                	urlPrefix = "/tiles/" + userId + "/key/"+ urlDomains[scope.device.id][0].key + "/" + deviceName + "." + channelName;
-		} else {
-                	urlPrefix = "/tiles/" + userId + "/" + deviceName + "." + channelName + "/" ;
+                	urlPostfix ='?k=' + urlDomains[scope.device.id][0].key ;
 		}
 
                 return function(level, offset, successCallback, failureCallback) {
-                    var url = urlDomains[scope.device.id][0].address + urlPrefix + level + "." + offset + ".json" ;
+                    var url = urlDomains[scope.device.id][0].address + urlPrefix + + level + "." + offset + ".json" + urlPostfix ;
                     loadJson(url, successCallback, failureCallback, null, true);
                 }
             }

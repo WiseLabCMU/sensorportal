@@ -124,10 +124,11 @@
         };
 
         $scope.continueConfig = function() {
+            console.log("uuid " + $scope.uuid);
             $state.go('devicecreate.config', {
                 id: $scope.selectedDevice.id,
-                createid: $scope.uuid,
-                type: $state.createType
+                type: $state.createType,
+                uuid: $scope.uuid
             });
         };
     });
@@ -209,7 +210,8 @@
         $scope.continueConfig = function() {
             $state.go('devicecreate.config', {
                 id: $scope.selectedDevice.id,
-                type: $state.createType
+                type: $state.createType,
+                uuid: $scope.uuid
             });
         };
 
@@ -272,7 +274,7 @@
         // todo add more information about config
         Device.constructDevice($stateParams.id, true).then(
             function(device) {
-                device.getConfig(true).then(function(result) {
+                device.getConfig().then(function(result) {
                     $scope.template = device;
                     set_config($scope.template.config, "pubsub#max_items", 500);
                 }, function(error) {
@@ -281,7 +283,9 @@
             });
         $scope.submitConfig = function() {
             var deviceUUID;
-            if (typeof $stateParams['uuid'] == 'undefined') {
+            console.log("statparams uuid" + $stateParams.uuid);
+            if (typeof $stateParams['uuid'] == 'undefined' ||
+              $stateParams['uuid'] == '') {
                 deviceUUID = uuid4.generate();
             } else {
                 deviceUUID = $stateParams['uuid'];
@@ -300,23 +304,23 @@
         }
     });
     app.controller('DeviceCreateEditCtrl', function($scope, Device, $state,
-        $stateParams, User, Alert,
-        MortarUser, $http, Browser) {
+        $stateParams, User, Alert, MortarUser, $http, Browser) {
         $scope.device = {};
         $scope.template = {};
-        Device.constructDevice($stateParams.template, true).then(function(device) {
-            $scope.template = device;
+        Device.constructDevice($stateParams.template, true).then(function(template) {
+            $scope.template = template;
+
+            Device.constructDevice($stateParams.deviceid, true).then(function(device) {
+              $scope.device = device;
+              $scope.device.transducers = $scope.template.transducers;
+              $scope.device.properties = $scope.template.properties;
+              $scope.device.name = $scope.template.name;
+              $scope.device.type = $scope.template.type;
+              $scope.device.interfaces = $scope.template.interfaces;
+              $scope.device.info = $scope.template.info;
+          });
         });
-        Device.constructDevice($stateParams.deviceid, true).then(function(device) {
-            $scope.device = device;
-            $scope.device.transducers = $scope.template.transducers;
-            $scope.device.properties = $scope.template.properties;
-            $scope.device.name = $scope.template.name;
-            $scope.device.type = $scope.template.type;
-            $scope.device.interfaces = $scope.template.interfaces;
-            $scope.device.info = $scope.template.info;
-        });
-        $scope.continue = function() {
+                $scope.continue = function() {
             $scope.device.setMeta().then(function(result) {
                 $state.go('devicecreate.references', {
                     id: $scope.device.id,
@@ -332,21 +336,17 @@
         $scope.deviceReferenceBrowser = {};
         $scope.references = [];
         $scope.type = $stateParams.type;
-        Browser.children = [];
+        $scope.folderSelected = false;
         if ($scope.type == 'adapter') {
-            Browser.loadChildren(User.favoritesFolder);
             Device.constructDevice(User.favoritesFolder, true).then(function(device) {
                 $scope.gateways = device;
                 Browser.loadChildren(device.id);
-                Browser.children.push(device.id);
                 $scope.selectedFolder = device;
             });
         } else if ($scope.type == 'device') {
-            Browser.loadChildren(User.favoritesFolder);
             Device.constructDevice(User.favoritesFolder, true).then(function(device) {
                 $scope.gateways = device;
                 Browser.loadChildren(device.id);
-                Browser.children.push(device.id);
                 $scope.selectedFolder = device;
             });
         } else if ($scope.type == 'gateway') {
@@ -354,28 +354,32 @@
             Device.constructDevice(User.favoritesFolder, true).then(function(device) {
                 $scope.gateways = device;
                 Browser.loadChildren(device.id);
-                Browser.children.push(device.id);
                 $scope.selectedFolder = device;
             });
-        } else if ($scope.type == 'gateway') {
+        } else  {
             Browser.loadChildren(User.favoritesFolder);
             Device.constructDevice(User.favoritesFolder, true).then(function(device) {
                 $scope.gateways = device;
                 Browser.loadChildren(device.id);
-                Browser.children.push(device.id);
                 $scope.selectedFolder = device;
             });
         }
-        $scope.selectedFolder = User.favorites_folder;
         Browser.children = [User.favoritesFolder];
-        Browser.loadChildren($scope.selectedFolder);
         $scope.device = Device.constructDevice($stateParams.id, false);
 
         $scope.selectFolder = function(folder) {
-            $scope.remove = folder;
+            //$scope.remove = folder;
             $scope.selectedFolder = folder;
+            Device.constructDevice(folder.id, true,true).then(function(device) {
+                Browser.loadChildren(folder.id);
+                $scope.selectedFolder = device;
+            });
+            $scope.folderSelected = true;
         };
 
+        $scope.isFolderSelected = function() {
+            return $scope.folderSelected;
+        }
         $scope.removeFolder = function(folder) {
             for (folderIndex in $scope.references) {
                 var iterFolder = $scope.references[folderIndex];
@@ -386,11 +390,11 @@
             }
         };
         $scope.continue = function() {
-            for (ref in $scope.references) {
-                if ($scope.references[ref].id == User.rootFolder) {
-                    continue;
-                }
-                Device.constructDevice($scope.references[ref].id, true).then(function(device) {
+            //for (ref in $scope.references) {
+                // if ($scope.references[ref].id == User.rootFolder) {
+                //     continue;
+                // }
+                Device.constructDevice($scope.selectedFolder.id, true).then(function(device) {
                     device.addReferences([{
                         id: $scope.device.id,
                         name: $scope.device.name,
@@ -404,10 +408,10 @@
                         });
                     });
                 });
-            }
-            $scope.device.addReferences($scope.references).then(function() {}, function(error) {
-                console.log(error);
-            });
+            //}
+            //$scope.device.addReferences($scope.selectedFol).then(function() {}, function(error) {
+            //    console.log(error);
+            //});
         };
     });
 
@@ -479,7 +483,6 @@
         $scope.loadUsers();
         $scope.selectedFolder = User.favorites_folder;
         Browser.children = [User.favoritesFolder];
-        Browser.loadChildren($scope.selectedFolder);
         $scope.device = Device.constructDevice($stateParams.id, false);
 
         /**

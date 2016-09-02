@@ -181,9 +181,8 @@
                 return metaStanza.up();
             },
             _getTimestamp: function() {
-
                 var date = new Date();
-                return date.getFullYear() + "-" + (date.getMonth + 1) + "-" + date.getDate() + "T" +
+                return date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate() + "T" +
                     date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds()
             },
             /* Parses data from the items stanza

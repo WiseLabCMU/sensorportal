@@ -243,9 +243,9 @@
      * @param  {[type]} Device         [description]
      * @return {[type]}                [description]
      */
-    app.controller('FolderModalCtrl', function($scope, $q, $modalInstance,
-        $state, $stateParams, $upload, $window, fromModal, Alert, Favorite,
-        Browser, User, Device, uuid4) {
+    app.controller('FolderModalCtrl', function($rootScope, $scope, $q,
+      $modalInstance, $state, $stateParams, $upload, $window, fromModal, Alert,
+      Favorite, Browser, User, Device, uuid4) {
         $scope.user = User;
         $scope.favorite = Favorite;
         $scope.modalBrowser = {};
@@ -270,7 +270,6 @@
 
         $scope.isUpdate = angular.isDefined($stateParams.folders) && $stateParams['folders'] != '';
         if ($scope.isUpdate) {
-            //@todo edit function to get all data from folder
             $scope.folder = Device.objFolder;
             $scope.loadFolder = Device.constructDevice($stateParams['folders'],
                 true, true);
@@ -285,9 +284,12 @@
             }, function(error) {
                 $scope.cp.error = true;
                 $scope.cp.errorMessage = error;
+                Alert.open(result);
+                $state.go($rootScope.lastState, $rootscope.lastParams);
             });
 
         }
+
         /**
          * onFileSelect  save the file in variable
          * @param  array $files [description]
@@ -295,6 +297,7 @@
         $scope.onFileSelect = function($files) {
                 $scope.folder.file = $files[0];
         }
+
         /**
          * Submit the necesarry data to update or create a folder
          */
@@ -474,8 +477,11 @@
             return User.isOwner(deviceId);
         };
         $scope.reload = function() {
-            $scope.initFolder($scope.selectedFolderId);
-            Browser.loadChildren($scope.selectedFolderId);
+            var device = Device.constructDevice($scope.selectedFodlerId, false);
+            //$scope.initFolder($scope.selectedFolderId);
+            device.getReferences().then(function() {
+              Browser.loadChildren($scope.selectedFolderId);
+            });
         };
         /**
          * [isPublisher description]
