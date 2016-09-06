@@ -655,7 +655,6 @@
                 return deferred.promise;
             },
             _hasReferences: function() {
-
                 var $self = this;
                 var refs = Object.keys($self.references.children).length +
                   Object.keys($self.references.parents).length +
@@ -824,7 +823,6 @@
                 var deferred = $q.defer();
                 if (!defaultConfig) {
                     User.connection.pubsub.getDefaultNodeConfig(function(result) {
-                        console.log(result);
                         var type = result.getAttribute('type');
                         if (type == 'result') {
                             var x = result.getElementsByTagName('x');

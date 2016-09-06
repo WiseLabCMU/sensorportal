@@ -37,7 +37,6 @@
                 restrict: 'A',
                 scope: {
                     nodeCallback: '=',
-                    collectionCallback: '=',
                     treeId: '=',
                     hideRoot: '=?',
                     selectedFolder: '=?',
@@ -86,8 +85,6 @@
 
                     //Node callback
                     var nodeCallback = attrs.nodeCallback || 'select';
-                    //Collection callback
-                    var collectionCallback = attrs.collectionCallback || 'select';
 
                     //Don't show Device in browser
                     var hideDevice = attrs.hideDevice || false;
@@ -122,11 +119,11 @@
                         '<a class="btn btn-link btn-sm" style="padding-left:0;" data-ng-click="' + attrs.removeFolder + '()"><span class="glyphicon glyphicon-minus-sign" style="color:red"></span> Remove Folder</a>' +
                         '</li>' +
                         '<li ng-hide="' + treeReferences + '[node].' + nodeId + '==\'root\' && ' + hideRoot + ' || ' + treeReferences + '[node].' + nodeLabel + '==\'Favorites\' && ' + hideFavorite + '" data-ng-repeat="node in ' + treeModel + ' | filter:textFilter track by $index">' +
-                        '<i class="collapsed" data-ng-show="' + treeReferences + '[node].' + nodeType + '==\'location\' && ((' + expandAll + ')?' +
+                        '<i class="collapsed" data-ng-show="' + treeReferences + '[node].' + nodeType + '!=\'device\' && ((' + expandAll + ')?' +
                         treeId + '.expanded[' + treeReferences + '[node].' + nodeId + ']:!' +
                         treeId + '.expanded[' + treeReferences + '[node].' + nodeId + '])" data-ng-click="' +
                         treeId + '.selectNodeHead(' + treeReferences + '[node])"></i>' +
-                        '<i class="expanded" data-ng-show="' + treeReferences + '[node].' + nodeType + '==\'location\' && ((' + expandAll + ')?!' +
+                        '<i class="expanded" data-ng-show="' + treeReferences + '[node].' + nodeType + '!=\'device\' && ((' + expandAll + ')?!' +
                         treeId + '.expanded[' + treeReferences + '[node].' + nodeId + ']:' + treeId + '.expanded[' + treeReferences + '[node].' + nodeId + '])" data-ng-click="' +
                         treeId + '.selectNodeHead(' + treeReferences + '[node])"></i>' +
                         '<i class="normal" data-ng-show="' + treeReferences + '[node].' + nodeType + '==\'device\' && !' + hideDevice + '" ></i> ' +
@@ -136,11 +133,12 @@
                         '<div data-tree-view="false" data-ng-hide="(' + expandAll + ')?' +
                         treeId + '.expanded[' + treeReferences + '[node].' + nodeId + ']:!' +
                         treeId + '.expanded[' + treeReferences + '[node].' + nodeId + '] " data-tree-show-search="false" data-tree-id="' +
-                        treeId + '" data-folders="' + treeReferences + '[node].' + nodeChildren + '" data-tree-model="folders"   data-node-callback="nodeCallback" data-collection-callback="collectionCallback" data-hide-device="' + hideDevice + '" data-expand-all="' + expandAll + '" data-text-filter="textFilter"></div>' +
+                        treeId + '" data-folders="' + treeReferences + '[node].' +
+                        nodeChildren + '" data-tree-model="folders"   data-node-callback="nodeCallback" data-collection-callback="collectionCallback" data-hide-device="' +
+                        hideDevice + '" data-expand-all="' + expandAll +
+                        '" data-text-filter="textFilter"></div>' +
                         '</li>' +
                         '</ul>';
-
-
 
                     //check tree id,
                     if (scope.treeId) {
@@ -155,7 +153,10 @@
                             scope.treeId.selectNodeHead = scope.treeId.selectNodeHead || function(selectedNode) {
                                 //Collapse or Expand
                                 if (!scope.treeId.expanded[selectedNode.id]) {
-                                    Browser.loadChildren(selectedNode.id);
+                                    Device.constructDevice(selectedNode.id, true).then(
+                                        function(device) {
+                                            Browser.loadChildren(selectedNode.id);
+                                        });
                                 }
                                 scope.treeId.expanded[selectedNode.id] = !scope.treeId.expanded[selectedNode.id];
                             };
@@ -172,9 +173,6 @@
 
                                     //set currentNode
                                     scope.treeId.currentNode = selectedNode;
-                                    if (typeof scope.collectionCallback != 'undefined') {
-                                        scope.collectionCallback(scope.treeId.currentNode);
-                                    }
                                     var isExpanded = (expandAll) ? scope.treeId.expanded[selectedNode.id] :
                                         !scope.treeId.expanded[selectedNode.id];
                                     if (isExpanded) {
@@ -185,17 +183,18 @@
                         }
 
                         if (typeof scope.selectedFolder != 'undefined') {
-                            scope.treeId.selectNodeLabel(scope.selectedFolder);
+                            //scope.treeId.selectNodeLabel(scope.selectedFolder);
                         }
                         //Select
                         scope.$watch(function() {
                             return scope.treeId.currentNode;
                         }, function(newValue, oldValue) {
                             if (typeof oldValue != 'undefined' &&
-                              typeof newValue != 'undefined') {
+                                typeof newValue != 'undefined' ||
+                                newValue === oldValue) {
                                 return;
                             }
-                            if (typeof newValue === 'undefined')  {
+                            if (typeof newValue === 'undefined') {
                                 return;
                             }
                             if (typeof scope.treeId.currentNode == 'undefined' && $state.is('device.list', {
@@ -212,9 +211,9 @@
                             } else if (typeof scope.treeId.currentNode == 'undefined' &&
                                 !$state.is('device.list') &&
                                 !$state.includes('device.view')) {
-                                //Browser.loadChildren(User.rootFolder).then(function(result) {
-                                //    scope.treeId.selectNodeLabel(Browser.references[User.rootFolder]);
-                                //});
+                                Browser.loadChildren(User.rootFolder).then(function(result) {
+                                    scope.treeId.selectNodeLabel(Browser.references[User.rootFolder]);
+                                });
                             }
                         });
                         //Rendering template.

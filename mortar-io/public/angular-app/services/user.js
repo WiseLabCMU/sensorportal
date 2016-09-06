@@ -26,20 +26,22 @@
          */
         this.isOwner = function(nodeId) {
                 return typeof this.permittedDevices.owner[nodeId] != 'undefined';
-            }
-            /**
-             * Returns if the user is a publisher of the node
-             * @param  string  nodeId id of the device or location node
-             * @return bool true if is publisher
-             */
+        }
+
+        /**
+         * Returns if the user is a publisher of the node
+         * @param  string  nodeId id of the device or location node
+         * @return bool true if is publisher
+         */
         this.isPublisher = function(nodeId) {
                 return typeof this.permittedDevices.publisher[nodeId] != 'undefined';
-            }
-            /**
-             * Returns if the user is subscribed to the device
-             * @param  string  deviceId id of the device
-             * @return boolean true if user is subscribed to the device
-             */
+        }
+
+        /**
+         * Returns if the user is subscribed to the device
+         * @param  string  deviceId id of the device
+         * @return boolean true if user is subscribed to the device
+         */
         this.isSubscribed = function(deviceId) {
             return typeof this.permittedDevices.subscribed[deviceId] != 'undefined';
         }
@@ -57,26 +59,26 @@
         }
         this.getOwnerList = function() {
                 return this.permittedDevices.publisher;
-            }
-            /**
-             * Returns if the user can edit the device or location node
-             * @param  string nodeId id of the device or location node
-             * @return bool true if he can edit the node
-             */
+        }
+
+        /**
+         * Returns if the user can edit the device or location node
+         * @param  string nodeId id of the device or location node
+         * @return bool true if he can edit the node
+         */
         this.canEdit = function(nodeId) {
                 return this.isOwner(nodeId) || this.isPublisher(nodeId);
 
-            }
-            /**
-             * Returns if the user can manage, calls is owner function
-             * @param  string nodeId id of a device or location node
-             * @return boolean true if he can manage the devices permissions
-             */
+        }
+        /**
+         * Returns if the user can manage, calls is owner function
+         * @param  string nodeId id of a device or location node
+         * @return boolean true if he can manage the devices permissions
+         */
         this.canManage = function(nodeId) {
             return this.isOwner(nodeId) || this.isPublisher(nodeId);
         }
 
-        //todo: //
         this.change_password = function(iq) {
 
         }
@@ -85,12 +87,13 @@
                 console.log(iq);
                 return true;
             }
-            /**
-             * Logs the user in, and sets hes data, sets the default headers for other requests.
-             * @param  string username
-             * @param  string password
-             * @return promise
-             */
+
+        /**
+         * Logs the user in, and sets hes data, sets the default headers for other requests.
+         * @param  string username
+         * @param  string password
+         * @return promise
+         */
         this.login = function(username, password) {
             if (typeof username == 'undefined')
                 return;
@@ -145,7 +148,10 @@
                         });
                     return;
                 } else if (status == Strophe.Status.CONNFAIL) {
-                    loginDeferred.reject("Strophe: Could not connect to server, connection failed.");
+                    if (!loginDeferred.isResolved() || !loginDeferred.isRejected()) {
+                        loginDeferred.reject(
+                          "Strophe: Could not connect to server, connection failed.");
+                    }
                 } else if (status == Strophe.Status.DISCONNECTING) {
                     loginDeferred.notify("Strophe: Disconnecting from server.");
                 } else if (status == Strophe.Status.DISCONNECTED) {

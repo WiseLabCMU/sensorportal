@@ -19,7 +19,13 @@
         $scope.user = User;
         $scope.devBrowser = {};
         Browser.children = [User.rootFolder, User.favoritesFolder];
-        $scope.selcectedFolder = Device.objFolder;
+        if (typeof Device.objFolder != 'undefined') {
+          $scope.selcectedFolder = Device.objFolder;
+        } else {
+           Device.constructDevice(User.favoritesFolder, true).then( function(device) {
+              $scope.selectedFolder = Device.objFolder;
+           });
+        }
 
         /**
          * selectFolder callback function to call inside the browser
@@ -29,13 +35,15 @@
             if (typeof objFolder == 'undefined' || typeof objFolder.id == 'undefined') {
                 return;
             }
-            $scope.selectedFolder = objFolder;
-            Device.constructDevice(objFolder.id, true, true).then(function(device) {
+            Device.constructDevice(objFolder.id, true).then(function(device) {
+                $scope.selectedFolder = device;
+                console.log(device);
                 if (device.hasTransducers()) {
                     $state.go('device.view.detail', {
                         id: objFolder.id
                     });
                 } else {
+                    Browser.loadChildren(objFolder.id);
                     $state.go('device.list', {
                         folder: objFolder.id
                     });
@@ -137,7 +145,6 @@
         $scope.selectedParents = {};
         $scope.parents = [];
         $scope.parent = null;
-        // dropdown toggle
         $scope.isOpen = false;
 
 
@@ -356,7 +363,7 @@
                             metaType: 'location'
                         }]));
                         $q.all(folderAddPromises).then(function(result) {
-                            Browser.loadChildren($scope.selectedFolder.id);
+//                            Browser.loadChildren($scope.selectedFolder.id);
                             Alert.open('success', response.message);
                             $scope.modalDeferred.resolve(true);
                             $modalInstance.close([$scope.selectedFolder.id ]);
