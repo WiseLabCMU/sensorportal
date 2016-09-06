@@ -57,6 +57,11 @@
             }
             Device.constructDevice(strFolderId, true).then(
                 function(device) {
+                    /*if (device === $self.references[device.id]) {
+                        console.log("already loaded children");
+                        deferred.resolve(true);
+                        return;
+                    }*/
                     if (typeof $self.references[device.id] != 'undefined') {
                         device.parents = $self.references[device.id].parents;
                     }
