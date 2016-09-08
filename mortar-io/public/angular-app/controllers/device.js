@@ -116,10 +116,15 @@
         var intervalDelay = 5000; // 5 seconds
         $scope.qrString = $location.$$absUrl;
         Device.constructDevice($stateParams['id'], true).then(function(device) {
+            if (typeof device == 'undefined') {
+              return;
+            }
             $scope.device = device;
             $scope.intervalPromise = $interval(
                 function() {
-                    $scope.device.getData()
+                    if (typeof $scope.device != 'undefined') {
+                        $scope.device.getData();
+                  }
                 }, intervalDelay);
         }, function(result) {
            Alert.open(result);

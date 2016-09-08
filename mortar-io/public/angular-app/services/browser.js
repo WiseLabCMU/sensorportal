@@ -18,31 +18,27 @@
         this.init = function() {
             var $self = this;
             var deferred = $q.defer();
+            var promises = [];
             /**
              * Children have first id of refrences for device broweser
-             **/
             $self.children = [
                 User.rootFolder,
                 User.favoritesFolder
             ];
+             **/
             /**
              * Folder service property references is a list of instance of folder
              *                           */
-            $self.promise = Device.constructDevice(User.rootFolder, true);
 
-            $self.promise.then(function(rootdevice) {
-                $self.references[User.rootFolder] = rootdevice;
-                Device.objFolder = rootdevice;
-                Device.constructDevice(User.favoritesFolder, true).then(function(favdevice) {
-                    $self.loadChildren(User.favoritesFolder);
-                    deferred.resolve(true);
-                });
-                $self.loadChildren(rootdevice.id);
-            }, function(error) {
-                deferred.reject(error);
+            promises.push($self.loadChildren(User.rootFolder));
+            promises.push($self.loadChildren(User.favoritesFolder));
+            $q.all(promises).then( function(results) {
+                deferred.resolve(results);
+            }, function(results) {
+                deferred.resolve(results);
             });
             return deferred.promise;
-        };
+          };
         /**
          * [loadChildren description]
          * @param  {[type]} strFolderId [description]
@@ -55,16 +51,13 @@
                 deferred.reject("undefined folder");
                 return deferred.promise;
             }
-            Device.constructDevice(strFolderId, true).then(
+            Device.constructDevice(strFolderId, true, true).then(
                 function(device) {
-                    /*if (device === $self.references[device.id]) {
-                        console.log("already loaded children");
-                        deferred.resolve(true);
-                        return;
-                    }*/
                     if (typeof $self.references[device.id] != 'undefined') {
                         device.parents = $self.references[device.id].parents;
                     }
+                    console.log("setting device reference");
+                    console.log(device);
                     $self.references[device.id] = device;
                     for (child_index = 0; child_index < device.children.length; child_index++) {
                         var child = device.children[child_index];

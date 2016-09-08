@@ -26,8 +26,19 @@
          */
         this.isOwner = function(nodeId) {
                 return typeof this.permittedDevices.owner[nodeId] != 'undefined';
-        }
+        };
 
+        this.loadChildren = function(deviceId) {
+
+        }
+        this.loadFavorites = function() {
+            var self = this;
+            self.favoritesFolder;
+            Device.constructDevice(this.favoritesFolder,true).then(
+              function(favorite){
+
+            });
+        }
         /**
          * Returns if the user is a publisher of the node
          * @param  string  nodeId id of the device or location node
@@ -84,9 +95,9 @@
         }
 
         this.on_message = function(iq) {
-                console.log(iq);
-                return true;
-            }
+            console.log(iq);
+            return true;
+        }
 
         /**
          * Logs the user in, and sets hes data, sets the default headers for other requests.
@@ -125,10 +136,7 @@
             var bosh_endpoint = 'http://' + 'sensor.andrew.cmu.edu' + ':5280/http-bind/';
 
             $self.connection = new Strophe.Connection(bosh_endpoint);
-
-
             $self.connection.connect($self.username, password, function(status) {
-
                 $self.setRequestToken();
                 $self.bosh_endpoint = bosh_endpoint;
                 $self.pubsubservice = 'pubsub.' + $self.connection.domain;

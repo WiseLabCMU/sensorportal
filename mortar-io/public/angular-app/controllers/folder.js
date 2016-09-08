@@ -19,13 +19,7 @@
         $scope.user = User;
         $scope.devBrowser = {};
         Browser.children = [User.rootFolder, User.favoritesFolder];
-        if (typeof Device.objFolder != 'undefined') {
-          $scope.selcectedFolder = Device.objFolder;
-        } else {
-           Device.constructDevice(User.favoritesFolder, true).then( function(device) {
-              $scope.selectedFolder = Device.objFolder;
-           });
-        }
+        $scope.selcectedFolder = Device.objFolder;
 
         /**
          * selectFolder callback function to call inside the browser
@@ -35,19 +29,11 @@
             if (typeof objFolder == 'undefined' || typeof objFolder.id == 'undefined') {
                 return;
             }
+            $scope.selectedFolder = objFolder;
             Device.constructDevice(objFolder.id, true).then(function(device) {
-                $scope.selectedFolder = device;
-                console.log(device);
-                if (device.hasTransducers()) {
-                    $state.go('device.view.detail', {
-                        id: objFolder.id
-                    });
-                } else {
-                    Browser.loadChildren(objFolder.id);
-                    $state.go('device.list', {
-                        folder: objFolder.id
-                    });
-                }
+                $state.go('device.list', {
+                    folder: objFolder.id
+                });
             });
         };
 
@@ -439,7 +425,7 @@
          * @param  string strFolderId Folder ID
          */
         $scope.initFolder = function(strFolderId) {
-            Device.constructDevice(strFolderId, true, true).then(
+            Device.constructDevice(strFolderId, true).then(
               function(device) {
                 $scope.selectedFolder = device;
                 if (typeof $scope.selectedFolder.parent != 'undefined') {
@@ -450,13 +436,12 @@
 
                 $scope.devices = [];
                 if (typeof $scope.selectedFolder.references != 'undefined' &&
-                    typeof $scope.selectedFolder.references.children != 'undefined') {
+                    typeof $scope.selectedFolder.references.children.length != 0) {
                     for (cIndex in $scope.selectedFolder.references.children) {
                         var child = $scope.selectedFolder.references.children[cIndex];
-                        console.log(child);
                         $scope.devices.push(child);
                         Device.constructDevice(child.id, true).then(function(childdevice) {
-                            $scope.devices[cIndex] = child;
+                            $scope.devices[cIndex] = childdevice;
                         }, function(error) {
                             console.log(error);
                             console.log(child);
