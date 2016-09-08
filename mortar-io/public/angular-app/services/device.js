@@ -9,7 +9,6 @@
         //name="enum" id="value"  ng-options="enum for (value,enum) in transducer.e track by value"
         function Device(id) {
             this.id = id;
-            this.user = User;
             this.references = {};
             this.references.children = {};
             this.references.parents = {};
@@ -251,7 +250,8 @@
                             $self.canActuate = true;
                         }
                     } else if (node.tagName == 'geolocation') {
-                        $self.geolocation = $self.parseGeolocation(node);
+                        //todo
+                        //$self.geolocation = $self.parseGeolocation(node);
                     } else if (node.tagName == 'interface') {
                         $self.interfaces[node.getAttribute('name')] = true;
                     }
@@ -277,10 +277,7 @@
                     $self.references.others = {};
                 }
                 references = $self.references;
-                //if (typeof $self.children == 'undefined') {
                 $self.children = [];
-                //}
-                var tmpChildren = $self.children.slice();
                 for (child_index = 0; child_index < nodes.length; child_index++) {
                     node = nodes[child_index];
                     name = node.getAttribute('name');
@@ -351,13 +348,14 @@
                     deferred.reject("Invalid Event Id");
                     return deferred.promise;
                 }
-                if (typeof $self.user.connection == 'undefined' ||
-                    !$self.user.connection.connected) {
+                if (typeof User.connection == 'undefined' ||
+                    !User.connection.connected) {
                     deferred.reject("User not connected");
                     return deferred.promise;
                 }
-                $self.user.connection.pubsub.items($self.id,
+                User.connection.pubsub.items($self.id,
                     function(stanza) {
+                        console.log(stanza);
                         var items = stanza.getElementsByTagName('items');
                         var child, child_index, id;
                         var t_values = [];
@@ -377,8 +375,9 @@
                         deferred.resolve($self);
                     },
                     function(error) {
+                        console.log(error);
                         deferred.resolve($self);
-                    }, 1000);
+                    }, 5000);
                 return deferred.promise;
             },
             /* configFormat Generates node configuration from a form
@@ -889,15 +888,14 @@
                 }
                 return deferred.promise;
             },
-            setConfig: function() {
-
-            },
             deleteNode: function() {
                 var deferred = $q.defer();
                 var $self = this;
                 User.connection.pubsub.deleteNode($self.id, function(result) {
                     var type = result.getAttribute('type');
                     if (type == 'result') {
+                        DeviceService.devices[$self.id] = null;
+                        Browser.references[$self.id] = null;
                         deferred.resolve(true);
                     } else if (type == 'error') {
                         $self._handleIqError(result, deferred);
@@ -951,10 +949,13 @@
          */
         DeviceService.constructDevice = function(id, initialize, reload) {
             var device;
+            var deferred = $q.defer();
             var devices = DeviceService.devices;
-            var loaded_device = false;
             if (typeof reload === 'undefined') {
                 reload = false;
+            }
+            if (initialize || reload) {
+              deferred = $q.defer();
             }
             if (typeof id == 'undefined' || id == '') {
                 if (initialize) {
@@ -966,18 +967,11 @@
                 }
             }
             if (typeof devices[id] === 'undefined') {
-                if (initialize == false) {
-                    device = new Device(id);
-                    device.loaded = false;
-                } else {
-                    device = new Device(id);
-                    device.loaded = false;
-                    loaded_device = true;
-                }
+                device = new Device(id);
+                device.loaded = false;
             } else {
                 device = devices[id];
                 device.loaded = true;
-                var deferred = $q.defer();
                 if (!reload) {
                     if (initialize) {
                         deferred.resolve(device);
@@ -987,22 +981,18 @@
                     }
                 }
             }
-            if (initialize || reload) {
+            if ((initialize && !device.loaded) || reload) {
                 var deferred = $q.defer();
                 device.init().then(function(result) {
-                    if (loaded_device) {
-                        device.folders = device.references.children;
-                        DeviceService.devices[device.id] = device;
-                    } else {
-                        DeviceService.devices[device.id] = device;
-                    }
-                    if (typeof DeviceService.objFolder === 'undefined') {
-                        DeviceService.objFolder = device;
-                    }
+                    device.folders = device.references.children;
+                    DeviceService.devices[device.id] = device;
                     deferred.resolve(device);
                 }, function(error) {
                     deferred.reject(error);
                 });
+                return deferred.promise;
+            } else if (initialize) {
+                deferred.resolve(device);
                 return deferred.promise;
             }
             return device;
