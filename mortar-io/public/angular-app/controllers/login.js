@@ -16,7 +16,8 @@
      * @param  service Folder
      * @param  service $modal
      */
-    app.controller('LoginCtrl', function($scope, MortarUser, User, $state, Alert, $modal, Browser, xmlrpc) {
+    app.controller('LoginCtrl', function($scope, MortarUser, User, $state,
+      Alert, $modal, Browser, xmlrpc, $window) {
         $scope.username = '';
         $scope.user = User;
 
@@ -27,14 +28,20 @@
             if (!$scope.username.includes("@")) {
                 $scope.username = $scope.username + "@sensor.andrew.cmu.edu";
             }
-            $scope.loginPost = User.login($scope.username, $scope.password);
+            $scope.loginPost = User.login($scope.username, $scope.password, $scope.stayLoggedIn);
             $scope.loginPost.then(function(response) {
                 $scope.userInfoPost = User.getVcard();
                 $scope.userInfoPost.then(function(success) {
+                    Browser.children = [User.rootFolder, User.favoritesFolder];
                     Browser.init().then(function(result) {
-                        $state.go('device.list', {
-                            folder: User.rootFolder
-                        });
+                        var sessionState = JSON.parse($window.sessionStorage.getItem("State"));
+                        if (typeof sessionState != 'undefined' && sessionState != null) {
+                                  $state.go(sessionState.state, sessionState.params);
+                        } else {
+                            $state.go('device.list', {
+                                folder: User.rootFolder
+                              });
+                        }
                     });
                 }, function(response) {
                     var modalInstance = $modal.open({
@@ -53,6 +60,7 @@
                         if (error) {
                             Alert.open('danger', 'Vcard information could not be saved.');
                         } else {
+                            Browser.children = [User.rootFolder, User.favoritesFolder];
                             Browser.init().then(function(success) {
                                 if (typeof User.state.name != 'undefined') {
                                     $state.go(User.state.name, User.state.params);

@@ -355,7 +355,6 @@
                 }
                 User.connection.pubsub.items($self.id,
                     function(stanza) {
-                        console.log(stanza);
                         var items = stanza.getElementsByTagName('items');
                         var child, child_index, id;
                         var t_values = [];
@@ -377,7 +376,7 @@
                     function(error) {
                         console.log(error);
                         deferred.resolve($self);
-                    }, 5000);
+                    }, 100000);
                 return deferred.promise;
             },
             /* configFormat Generates node configuration from a form
@@ -401,7 +400,6 @@
                 var deferred = $q.defer();
                 var config_deferred = $q.defer();
                 if (typeof $self.config === 'undefined') {
-                    console.log("Getting config");
                     config_deferred = $self.getConfig();
                 } else {
                     config_deferred = $q.defer();
@@ -417,7 +415,6 @@
                                 var promises = [];
                                 DeviceService.references[$self.id] = $self;
                                 DeviceService.devices[$self.id] = $self;
-                                console.log($self.id);
                                 promises.push($self.setMeta());
                                 promises.push($self.setReferences());
                                 if ($self.storage.length > 0) {
@@ -470,8 +467,6 @@
                     deferred.reject("Could not generate a meta stanza");
                     return deferred.promise;
                 }
-                console.log("metaStanza");
-                console.log(metaStanza);
                 Mio.publishItems([{
                         attrs: {
                             id: "meta"
@@ -485,6 +480,9 @@
                 var $self = this;
                 var deferred = $q.defer();
                 var items = [];
+                if (typeof $self.transducers == 'undefined') {
+                    return;
+                }
                 for (t_index = 0; t_index < Object.keys($self.transducers).length; t_index++) {
                     items.push("_" + Object.keys($self.transducers)[t_index]);
                 }
@@ -627,18 +625,14 @@
                 getRefPromise.then(function(response) {
                     var ref_index, type, ref, node;
                     for (ref_index = 0; ref_index < references.length; ref_index++) {
-                        console.log("removing");
-                        console.log(references);
                         ref = references[ref_index];
                         type = ref.type;
-                        console.log(ref);
                         node = ref.node || ref.id;
                         delete $self.references.children[node];
                         delete $self.references.parents[node];
                         delete $self.references.others[node];
                     }
                     var datanode = $self._getReferencesStanza().tree();
-                    console.log(datanode);
                     Mio.publishItems([{
                         attrs: {
                             id: 'references'
@@ -678,8 +672,6 @@
                   return deferred.promise;
                 }
                 var datanode = $self._getReferencesStanza().tree();
-                console.log("datanode");
-                console.log(datanode);
                 Mio.publishItems([{
                   attrs: {
                       id: 'references'
@@ -768,6 +760,7 @@
                         }
                         deferred.resolve(true);
                     } else if (type == 'error') {
+                        console.log(result);
                         $self._handleIqError(result, deferred);
                     } else {
                         deferred.reject("Could not get node affiliations: " + result);
@@ -805,11 +798,8 @@
                 return this.addAffiliation(jid, "none");
             },
             getChildByName: function(name) {
-                console.log("In get child by name " + name);
-                console.log(this.folders);
                 for (childIndex in this.folders) {
                     child = this.folders[childIndex];
-                    console.log(child);
                     if (child.name == name || child.label == name) {
                         return child;
                     }
@@ -826,7 +816,6 @@
                         if (type == 'result') {
                             var x = result.getElementsByTagName('x');
                             $self.config = [];
-                            console.log(x[0].childNodes.length);
                             for (configIndex = 0;
                               configIndex < x[0].childNodes.length;
                               configIndex++) {
@@ -858,12 +847,10 @@
 
                 } else {
                     User.connection.pubsub.getConfig($self.id, function(result) {
-                        console.log(result);
                         var type = result.getAttribute('type');
                         if (type == 'result') {
                             var x = result.getElementsByTagName('x');
                             $self.config = {};
-                            console.log(x[0].childNodes.length);
                             for (configIndex = 0; configIndex < x[0].childNodes.length; configIndex++) {
                                 var field = x[0].childNodes[configIndex];
                                 var v = field.getAttribute('var');
@@ -919,9 +906,9 @@
                         deferred.reject("Could not delete node: " + result);
                     }
                 });
-                return deferred;
+                return deferred.promise;
             },
-            unsubscribe: function() {
+            unsubscribe: function(sbuId) {
                 var deferred = $q.defer();
                 var $self = this;
                 User.connection.pubsub.unsubscribe($self.id, function(result) {

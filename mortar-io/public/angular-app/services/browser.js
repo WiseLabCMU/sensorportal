@@ -3,8 +3,10 @@
  */
 (function() {
     var app = angular.module('browser-service', ['user-services', 'device-services']);
-    app.service('Browser', function(User, Device, $q) {
+    app.service('Browser', function(Device, $q, User) {
         this.references = {};
+        this.initialized = false;
+
         /**
          * Destroy object on logout
          */
@@ -16,26 +18,17 @@
         };
 
         this.init = function() {
+            this.initialized = true;
             var $self = this;
             var deferred = $q.defer();
             var promises = [];
-            /**
-             * Children have first id of refrences for device broweser
-            $self.children = [
-                User.rootFolder,
-                User.favoritesFolder
-            ];
-             **/
-            /**
-             * Folder service property references is a list of instance of folder
-             *                           */
-
-            promises.push($self.loadChildren(User.rootFolder));
-            promises.push($self.loadChildren(User.favoritesFolder));
+            for (child in $self.children) {
+                promises.push($self.loadChildren(this.children[child]));
+            }
             $q.all(promises).then( function(results) {
                 deferred.resolve(results);
             }, function(results) {
-                deferred.resolve(results);
+                deferred.reject(results);
             });
             return deferred.promise;
           };
@@ -47,6 +40,12 @@
         this.loadChildren = function(strFolderId) {
             var $self = this;
             var deferred = $q.defer();
+            if (!this.initialized) {
+                this.init().then(function(result) {
+                $self.loadChildren(strFolderId).then(function() {deferred.resolve(true)},
+                   function() {deferred.reject(false);});});
+                return deferred.promise;
+            }
             if (typeof strFolderId == 'undefined') {
                 deferred.reject("undefined folder");
                 return deferred.promise;

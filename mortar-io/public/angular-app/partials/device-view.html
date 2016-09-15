@@ -1,17 +1,19 @@
 <div class="device-view">
   <h1 class="pull-left">{{device.name}}</h1>
   <div class="pull-right device-actions">
-    <a ui-sref="device.view.edit({id:device.id})" class="btn gray-btn" ng-if="user.isOwner(device.id)"><i class="fa fa-pencil-square-o"></i>Edit</a>
+    <a ui-sref="device.view.edit({id:device.id})" class="btn gray-btn" ng-if="isOwner(device.id)"><i class="fa fa-pencil-square-o"></i>Edit</a>
     <a class="btn gray-btn" ng-click="reload()" >
 	    <i class="fa fa-refresh"></i>Refresh</a>
-    <a ui-sref="device.view.favorites({id:dRefreshevice.id})" class="btn gray-btn">
+    <a ui-sref="device.view.favorites({'id':device.id})" class="btn gray-btn">
 	    <i class="fa fa-thumb-tack"></i>Add to Favorites</a>
-    <a ui-sref="device.permissions({id:device.id})" class="btn gray-btn" ng-if="user.isOwner(device.id)">
+    <a ui-sref="device.permissions({id:device.id})" class="btn gray-btn" ng-if="isOwner(device.id)">
 	    <i class="fa fa-cog"></i>Manage Permissions</a>
-    <button ng-if="!user.isSubscribed(device.id) && !user.isOwner(device.id)" class="btn gray-btn" ng-click="subscribe()" >
+    <button ng-if="!isSubscribed(device.id) && !isOwner(device.id)" class="btn gray-btn" ng-click="subscribe()" >
 	    <i class="fa fa-sign-in"></i>Subscribe</button>
-    <button ng-if="user.isSubscribed(device.id) && !user.isOwner(device.id)" class="btn gray-btn" ng-click="unSubscribe()" >
+    <button ng-if="isSubscribed(device.id) && !isOwner(device.id)" class="btn gray-btn" ng-click="unSubscribe()" >
 	    <i class="fa fa-sign-out"></i>Unsubscribe</button>
+    <button ng-if="isOwner(device.id)" class="btn gray-btn" ng-click="delete()" >
+	    <i class="fa fa-trash"></i>Delete</button>
   </div>
   <div class="clearfix"></div>
   <ul class="nav nav-tabs" role="tablist">
