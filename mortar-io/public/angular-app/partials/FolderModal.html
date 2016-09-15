@@ -5,11 +5,12 @@
 </div>
 <form role="form" ng-submit="submitFolder()" novalidate>
     <div cg-busy="loadFolder"></div>
-    <!--<alert ng-show="cp.error" type="warning" close="cp.error=false">{{cp.errorMessage}}</alert>-->
+    <alert ng-show="cp.error" type="warning" close="cp.error=false">{{cp.errorMessage}}</alert>
     <div class="modal-body">
         <div class="form-group">
             <label for="foldername">Folder Name</label>
-            <input class="form-control" type="text" name="foldername" ng-model="folder.name"  id="foldername" required />
+            <input class="form-control" type="text" name="foldername"
+              ng-model="folder.name"  id="foldername" required />
         </div>
 	<div class="form-group">
             <label for="foldername">Folder Type</label>
@@ -20,7 +21,7 @@
      	    <input type="radio" ng-model="folder.type" value="other" />Other
 	    <br />
         </div>
-	<!--<div class="row" ng-if="!folder.isFavorite">-->
+	<div class="row" ng-if="!folder.isFavorite">
         <div class="row" >
             <div class="col-md-5">
                 <div class="form-group" ng-if="user.isAdmin()" >

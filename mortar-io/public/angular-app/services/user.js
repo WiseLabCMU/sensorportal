@@ -10,14 +10,14 @@
      * @param service $http   requests service of angularjs
      * @param service $q      promise service of angularjs
      */
-    var UserService = function($window, $http, $q, xmlrpc) {
-
+    var UserService = function($window, $http, $q, xmlrpc, $rootScope,
+      $state) {
         /**
          * Returns if the user is an admin
          * @return bool true if is Admin
          */
         this.isAdmin = function() {
-            return this.isPublisher(this.root) || this.isOwner(this.root);
+            return this.isPublisher({id:this.root}) || this.isOwner({id:this.root});
         };
         /**
          * Returns if the user is the owner of the device
@@ -25,12 +25,9 @@
          * @return bool true if is owner
          */
         this.isOwner = function(nodeId) {
-                return typeof this.permittedDevices.owner[nodeId] != 'undefined';
+                return typeof this.permittedDevices.owner[nodeId.id] != 'undefined';
         };
 
-        this.loadChildren = function(deviceId) {
-
-        }
         this.loadFavorites = function() {
             var self = this;
             self.favoritesFolder;
@@ -45,7 +42,10 @@
          * @return bool true if is publisher
          */
         this.isPublisher = function(nodeId) {
-                return typeof this.permittedDevices.publisher[nodeId] != 'undefined';
+                return typeof this.permittedDevices.publisher[nodeId.id] !== 'undefined';
+        }
+        this.isPublisherOrOwner = function(nodeID) {
+           return this.isPublisher({id: nodeID}) || this.isOwner({id: nodeID});
         }
 
         /**
@@ -54,13 +54,13 @@
          * @return boolean true if user is subscribed to the device
          */
         this.isSubscribed = function(deviceId) {
-            return typeof this.permittedDevices.subscribed[deviceId] != 'undefined';
+            return typeof this.permittedDevices.subscribed[deviceId.id] != 'undefined';
         }
         this.isSubscribe = function(deviceId) {
-            return typeof this.permittedDevices.subscribed[deviceId] != 'undefined';
+            return typeof this.permittedDevices.subscribed[deviceId.id] != 'undefined';
         }
         this.isUnSubscribe = function(deviceId) {
-            return typeof this.permittedDevices.subscribed[deviceId] == 'undefined';
+            return typeof this.permittedDevices.subscribed[deviceId.id] == 'undefined';
         }
         this.getSubscriptionList = function() {
             return this.permittedDevices.subscribed;
@@ -89,13 +89,10 @@
         this.canManage = function(nodeId) {
             return this.isOwner(nodeId) || this.isPublisher(nodeId);
         }
-
         this.change_password = function(iq) {
 
         }
-
         this.on_message = function(iq) {
-            console.log(iq);
             return true;
         }
 
@@ -105,21 +102,19 @@
          * @param  string password
          * @return promise
          */
-        this.login = function(username, password) {
-            if (typeof username == 'undefined')
-                return;
+        this.login = function(username, password, saveUser) {
             var $self = this;
             var loginDeferred = $q.defer();
             var at_index = username.indexOf('@');
+            $self.saveuser = saveUser;
             $self.favoritesFolder = username.substring(0, at_index) + "_Favorites";
             $self.rootFolder = "root";
             $self.username = username;
-            $self.password = username;
+            $self.password = password;
             $self.domain = username.substring(at_index + 1, username.length);
-            console.log("Domain : " + $self.domain);
 
             xmlrpc.config({
-                hostname: '127.0.0.1',
+                hostname: 'localhost',
                 //hostname: $self.domain,
                 pathName: "/RPC2", // Default is /rpc2
                 401: function() {
@@ -140,13 +135,16 @@
                 $self.setRequestToken();
                 $self.bosh_endpoint = bosh_endpoint;
                 $self.pubsubservice = 'pubsub.' + $self.connection.domain;
-                $self.xmlrpcservice = "http://" + $self.connection.domain + ":4560";
+                $self.xmlrpcservice = "http://" + $self.connection.domain + ":4560/RPC2";
 
                 $self.connectionStatus = status;
                 if (status == Strophe.Status.CONNECTED) {
                     $self.loggedIn = true;
-                    $self.saveSession();
-                    $self.connection.addHandler($self.on_message, null, 'message', 'chat', null, null);
+                    if ($self.saveUser) {
+                      $self.saveSession();
+                    }
+                    //$self.connection.addHandler($self.on_message, null, 'message',
+                        //'chat', null, null);
                     $self.getPermittedDevices().then(
                         function(result) {
                             loginDeferred.resolve(true);
@@ -176,9 +174,7 @@
                 } else {
                     loginDeferred.reject("Strophe connection error");
                 }
-                return;
             });
-            $self.saveSession();
             return loginDeferred.promise;
         };
 
@@ -201,13 +197,12 @@
          * Saves the user in the browser's session
          */
         this.saveSession = function() {
-            /* $window.sessionStorage.setItem("User", JSON.stringify({
+            $window.sessionStorage.setItem("User", JSON.stringify({
                  username: this.username,
                  password: this.password
-             }));*/
+             }));
             //$window.sessionStorage.setItem("User", this);
         };
-        //Todo, make sure that this is updated when user.js is complete
         /**
          * Deletes logged in user from window session, resets user data in service
          */
@@ -259,11 +254,11 @@
                                 node = attribute.value;
                         }
                         if (affil == 'owner')
-                            $self.permittedDevices.owner[node] = true;
+                            $self.permittedDevices.owner[node] = node;
                         else if (affil == 'publisher')
-                            $self.permittedDevices.publisher[node] = true;
+                            $self.permittedDevices.publisher[node] = node;
                         else if (affil == 'subscribed')
-                            $self.permittedDevices.subscribed[node] = true;
+                            $self.permittedDevices.subscribed[node] = node;
                     }
                     deferred.resolve(true);
                 } else {
@@ -332,32 +327,8 @@
                 });
             return deferred.promise;
         };
-        var sessionUser = $window.sessionStorage.getItem("User");
-        //var sessionUser = null;
 
-        if (sessionUser) {
-            angular.extend(this, sessionUser);
-            this.login(sessionUser.username, sessionUser.password);
-            this.connectionStatus = Strophe.Status.DISCONNECTED;
-            this.name = '';
-            this.email = '';
-            this.group = '';
-            this.favoritesFolder = '';
-            this.rootFolder = '';
-            this.permittedDevices = {
-                publisher: {},
-                owner: {},
-                subscribed: {}
-            };
-            this.loggedIn = false;
-            this.state = {};
-            this.loginDeferred = [];
-            this.getVcardDeferred = [];
-            this.getPermittedDevicesPromise = [];
-            this.token = '';
-            this.requestToken = '';
 
-        } else {
             this.connectionStatus = Strophe.Status.DISCONNECTED;
             this.username = '';
             this.name = '';
@@ -378,11 +349,7 @@
             this.token = '';
             this.requestToken = '';
             // $http.defaults.headers.common.Authorization = '';
-        }
-        if (sessionUser) {
-            //this.setRequestToken();
             //this.getPermittedDevices();
-        }
     };
     app.service('User', UserService);
 })();

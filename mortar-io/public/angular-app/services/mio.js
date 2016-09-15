@@ -2,6 +2,9 @@
     var app = angular.module('mio-services', ['user-services']);
 
     var MioService = function($window, User, $q) {
+        this.deleteNode = function(deferred,eventnode) {
+
+        }
         this.publishItems = function(items, deferred, eventnode) {
             User.connection.pubsub.publish(
                 eventnode, items,

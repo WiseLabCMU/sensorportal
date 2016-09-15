@@ -78,8 +78,9 @@
                         favoritesFolder: username.slice(0, username.indexOf('@')) +
                             '_Favorites'
                     };
-                    deferred.resolve(newUser);
+                    deferred.resolve(user_vcard);
                 }, username, function(iq) {
+                    console.log(iq);
                     var newUser = {
                         username: username.slice(0, username.indexOf('@')),
                         name: "",
@@ -99,7 +100,7 @@
                 return xmlrpc.callMethod(command, args);
             },
             // toDo switch to roster
-            /** 
+            /**
              * load the list of users
              * @return promise object
              */
@@ -216,7 +217,7 @@
                     .success(function(response) {
                         if (response.error) {
                             deferred.reject(response.message);
-	  // 		    $self.promises = [];  
+	  // 		    $self.promises = [];
                             return;
                         }
                         deferred.resolve(response.message);
