@@ -78,7 +78,7 @@
                     var nodeChildren = 'children';
 
                     //node type
-                    var nodeType = 'type';
+                    var nodeType = 'metaType';
 
                     //search form
                     var treeShowSearch = attrs.treeShowSearch;
@@ -138,32 +138,26 @@
                             scope.treeId.selected = {};
                             //if node head clicks,
                             scope.treeId.selectNodeHead = scope.treeId.selectNodeHead || function(selectedNode) {
-                                //Collapse or Expand
-                                if (!scope.treeId.expanded[selectedNode.id]) {
-                                    Browser.loadChildren(selectedNode.id);
-                                }
-                                scope.treeId.expanded[selectedNode.id] =
-                                 !scope.treeId.expanded[selectedNode.id];
+                                scope.treeId.expanded[selectedNode.id] = !scope.treeId.expanded[selectedNode.id];
                             };
                             //if node label clicks,
                             scope.treeId.selectNodeLabel = scope.treeId.selectNodeLabel || function(selectedNode) {
                                 if (typeof selectedNode == 'undefined') return;
                                 //remove highlight from previous node
-                                if (scope.treeId.currentNode && scope.treeId.selected[scope.treeId.currentNode.id]) {
-                                    scope.treeId.selected[scope.treeId.currentNode.id] = undefined;
-                                }
 
                                 Browser.loadChildren(selectedNode.id).then(function(result) {
+                                    if (typeof scope.treeId.currentNode != 'undefined') {
+                                        scope.treeId.selected[scope.treeId.currentNode.id] = undefined;
+                                    }
+                                    scope.treeId.selected[selectedNode.id] = 'selected';
                                     scope.treeId.currentNode = selectedNode;
                                     //set highlight to selected node
-                                    scope.treeId.selected[selectedNode.id] = 'selected';
                                     if (selectedNode[nodeType] == 'location') {
                                         if (typeof scope.collectionCallback != 'undefined') {
-                                            //scope.collectionCallback(scope.treeId.currentNode);
                                             scope.collectionCallback(selectedNode);
                                         }
                                         var isExpanded = (expandAll) ? scope.treeId.expanded[selectedNode.id] :
-                                          !scope.treeId.expanded[selectedNode.id];
+                                            !scope.treeId.expanded[selectedNode.id];
                                         if (isExpanded) {
                                             scope.treeId.selectNodeHead(scope.treeId.currentNode);
                                         }
@@ -174,9 +168,9 @@
                             };
                         }
 
-                        if (typeof scope.selectedFolder != 'undefined') {
-                            scope.treeId.selectNodeLabel(scope.selectedFolder);
-                        }
+                        //if (typeof scope.selectedFolder != 'undefined') {
+                        //    scope.treeId.selectNodeLabel(scope.selectedFolder);
+                        //}
                         //Select
                         scope.$watch(function() {
                             return scope.treeId.currentNode;
@@ -198,12 +192,6 @@
                                 getChildByName('templates').node;
                                 Browser.loadChildren(templateId).then(function(result) {
                                     scope.treeId.selectNodeLabel(Browser.references[templateId]);
-                                });
-                            } else if ($state.is('device.list', {
-                                    folder: scope.user.favoritesFolder
-                                })) {
-                                Browser.loadChildren(scope.user.favoritesFolder).then(function(result) {
-                                    scope.treeId.selectNodeLabel(Browser.references[scope.user.favoritesFolder]);
                                 });
                             } else if (typeof scope.treeId.currentNode == 'undefined' &&
                                 !$state.is('device.list') &&

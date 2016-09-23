@@ -20,7 +20,7 @@
      * @param  {[type]} Alert        [description]
      */
     app.controller('DeviceCtrl', function($rootScope, $scope, $state, $route,
-      $stateParams, User, Device, Alert) {
+        $stateParams, User, Device, Alert) {
         $scope.folder = Device;
         $scope.devices = [];
         $scope.permittedDevices = User.permittedDevices.publisher;
@@ -42,13 +42,13 @@
                     Alert.open('Could not load current device\'s parent', error);
                 });
             }
-          } , function(result) {
-                Alert.open(result);
-                if ($rootScope.lastState != 'undefined' && $rootScope.lastParams
-                  != null) {
-                    $state.go($rootScope.lastState, $rootScope.lastParams);
-                }
-          });
+        }, function(result) {
+            Alert.open(result);
+            if ($rootScope.lastState != 'undefined' && $rootScope.lastParams !=
+                null) {
+                $state.go($rootScope.lastState, $rootScope.lastParams);
+            }
+        });
 
         /**
          * subscribe Subscribe a user to the current device
@@ -57,21 +57,38 @@
             $scope.promiseSubs = $scope.device.subscribe();
             $scope.promiseSubs.then(function(response) {
                 User.getPermittedDevices();
-                $scope.subscrbValidator.isSubscribe = false;
-                $scope.subscrbValidator.isUnsubscribe = true;
+                $scope.subscrbValidator.isSubscribed = false;
+                $scope.subscrbValidator.isUnsubscribeb = true;
                 Alert.open('Subscribed to ' + $scope.device.id, response);
             }, function(error) {
                 Alert.open('warning', error);
             });
         };
         $scope.isOwner = function(eventId) {
-          return User.isOwner({'id': eventId});
+            return User.isOwner({
+                'id': eventId
+            });
         };
         $scope.isPublisher = function(eventId) {
-          return User.isPublisher({'id': eventId});
+            return User.isPublisher({
+                'id': eventId
+            });
         }
         $scope.isSubscribed = function(eventId) {
-          return User.isSubscribed({'id':eventId});
+            return User.isSubscribed({
+                'id': eventId
+            });
+        };
+         $scope.deleteDevice = function() {
+        	var parent;
+        	if (typeof $scope.device.parents != 'undefined' &&
+                Object.keys($scope.device.parents).length > 0){
+                parent = $scope.device.parents[0].id;
+            } else {
+                parent = User.favoritesFolder;
+            }
+            $state.go('device.view.delete', {
+              parent:parent});
         };
 
         /**
@@ -103,7 +120,7 @@
      * @param  service Device       Device service
      */
     app.controller('DeviceDetailMapCtrl', function($rootScope, $scope,
-      $stateParams, Device, User) {
+        $stateParams, Device, User) {
         $scope.$watch('device', function() {
             Device.constructDevice($stateParams['id'], true).then(function(device) {
                 $scope.device = device;
@@ -122,42 +139,66 @@
      * @param  factory User
      */
     app.controller('DeviceViewCtrl', function($rootScope, $scope, $state,
-      $stateParams, Device, User, $location, $window, Alert, $interval) {
+        $stateParams, Device, User, $location, $window, Alert, $interval) {
         var modalInstance;
         var intervalDelay = 5000; // 5 seconds
         $scope.qrString = $location.$$absUrl;
         Device.constructDevice($stateParams['id'], true).then(function(device) {
             if (typeof device == 'undefined') {
-              return;
+                return;
             }
             $scope.device = device;
             $scope.intervalPromise = $interval(
                 function() {
                     if (typeof $scope.device != 'undefined') {
                         $scope.device.getData();
-                  }
+                    }
                 }, intervalDelay);
         }, function(result) {
-           Alert.open(result);
-           $state.go($rootScope.lastState, $rootScope.lastParams);
+            Alert.open(result);
+            $state.go($rootScope.lastState, $rootScope.lastParams);
         });
         $rootScope.$on('$stateChangeStart',
             function(event, toState, toParams, fromState, fromParams) {
                 $interval.cancel($scope.intervalPromise);
             });
-        /*$scope.$watch('device', function() {
-            if ($scope.device == null) {
-                Device.constructDevice($stateParams['id'], true).then(
-                    function(device) {
-                        $scope.device = device;
-                    },
-                    function(result) {
-                        Alert.open(result);
-                        $state.go($rootScope.lastState, $rootScope.lastParams);
-                    });
+             $scope.isOwner = function(deviceId) {
+            return User.isOwner({
+                id: deviceId
+            });
+        };
+        $scope.canEdit = function(deviceId) {
+            return User.isOwner({
+                id: deviceId
+            }) || User.isPublisher({
+                id: deviceId
+            });
+        };
+        $scope.isFavorite = function() {
+        	if (typeof $scope.device == 'undefined') {
+        		return true;
+        	}
+        	return $scop.device.name == User.favoritesFolder;
+        };
+        $scope.reload = function() {
+            $scope.initFolder({
+                id: $stateParams.id
+            });
+        };
+        $scope.isSubscribed = function() { 
+        	return User.isSubscribed($stateParams.id);
+        }
+        $scope.deleteDevice = function() {
+        	var parent;
+            if (typeof $scope.device.parents != 'undefined' &&
+                Object.keys($scope.device.parents).length > 0){
+                parent = $scope.device.parents[0].id;
+            } else {
+                parent = User.favoritesFolder;
             }
-        });*/
-
+            $state.go('device.view.delete', {
+              parent:parent});
+        };
     });
 
     /**
@@ -196,14 +237,13 @@
      * @param  factory User   [description]
      */
     app.controller('DeviceModalCtrl', function($scope, User, $modalInstance, $state,
-        $stateParams, $upload, $window, $modal,
-        Device, Alert, Browser, $q) {
+      $stateParams, $upload, $window, $modal, Device, Alert, Browser, $q) {
         $scope.parentDevice = {};
-        $scope.$watch(function() {
-            return $scope.device;
-        }, function() {
-            if ($scope.device == null) {
-                Device.constructDevice($stateParams['id']).then(function(device) {
+        // $scope.$watch(function() {
+//             return $scope.device;
+//         }, function() {
+//             if ($scope.device == null) {
+                Device.constructDevice($stateParams['id'],true).then(function(device) {
                     $scope.device = device;
                     if (typeof device.location === 'undefined') {
                         device.location = {};
@@ -215,14 +255,15 @@
                         device.location.root = '';
                     }
                     if (typeof $scope.device.parent != 'undefined') {
-                        $scope.parentDevice.selectNodeLabel(Device.references[device.parent.id]);
+                        $scope.parentDevice.selectNodeLabel(
+                        	Device.references[device.parent.id]);
                     }
                     if (typeof $scope.imageUrl === 'udefined') {
                         $scope.device.imageUrl = '';
                     }
                 });
-            }
-        });
+//             }
+        //});
 
         //toDo Update Geolocation form
         /**
@@ -233,13 +274,13 @@
         $scope.setDeviceLocation = function(lon, lat) {
                 $scope.device.location.lat = lat;
                 $scope.device.location.lon = lon;
-            }
-            //todo url
-            /**
-             * [onFileSelect description]
-             * @param  {[type]} $files [description]
-             * @return {[type]}        [description]
-             */
+        }
+        //todo url
+        /**
+         * [onFileSelect description]
+         * @param  {[type]} $files [description]
+         * @return {[type]}        [description]
+         */
         $scope.onFileSelect = function($files) {
             $scope.device.image = $files[0];
         }
@@ -367,7 +408,7 @@
      * @return {[type]}           [description]
      */
     app.controller('DeviceFunctionsCtrl', function($rootScope, $scope,
-      $stateParams, User, Device, Alert, $interval) {
+        $stateParams, User, Device, Alert, $interval) {
         $scope.command = {};
         $scope.command.value = "";
         var intervalDelay = 1000;
@@ -450,9 +491,144 @@
      * @param  {[type]} $timeout       [description]
      * @return {[type]}                [description]
      */
-    app.controller('DevFavoritesModalCtrl', function($rootScope, $scope, $modal,
+    app.controller('DeviceDeleteCtrl', function($rootScope, $scope, $modal,
       $modalInstance, $state, $stateParams, User, Alert, Device, Browser, $q,
-      $timeout) {
+      $timeout,Mio) {
+        $scope.confirm = function() {
+            var deferred = $q.defer();
+            Device.constructDevice($stateParams.id, true).then(function(device) {
+                var removeReference = {
+                    id: $stateParams.id,
+                    type: $stateParams.metaType,
+                    relation: '',
+                    node: $stateParams.id,
+                    name: device.name
+                };
+                var promises = [];
+                var parents = {};
+                if (typeof device.references != 'undefined') {
+                // parent reference remove
+                for (parentIndex in device.references.parents) {
+                    var parent = device.references.parents[parentIndex];
+                    if (User.canEdit({
+                            id: parent.node
+                        })) {
+                        var parentDevice = Device.constructDevice(parent.id, false);
+                        promises.push(parentDevice.removeReferences([removeReference]));
+                        parents[device.id] = true;
+                    }
+                }
+                // child reference remove
+                for (childIndex in device.references.children) {
+                    var child = device.references.children[childIndex];
+                    if (User.canEdit({
+                            id: child.node
+                        })) {
+                        var childDevice = Device.constructDevice(child.id, false);
+                        promises.push(childDevice.removeReferences([removeReference]));
+                    }
+                }
+              }
+              if (typeof device.parents != 'undefined') {
+                  for (parentIndex in device.parents) {
+                  	var parent = device.parents[parentIndex];
+                    if (User.canEdit({
+                            id: parent.id
+                        })) {
+                          if (parents[parent.id]) {
+                              continue;
+                          }
+                        var parentDevice = Device.constructDevice(parent.id, false);
+                        promises.push(parentDevice.removeReferences([removeReference]));
+                    }
+                }
+              }
+              var performDelete = function(results) {
+              Mio.delete($stateParams.id, function(iq) {
+                promises = [];
+              	if (iq == null) {
+                        Alert.open("request to delte " + $stateParams.id +
+                          " timed out.");
+                        $modalInstance.dismiss();
+                }
+                if (typeof device.parents != 'undefined') {
+              	for (parentIndex in device.parents) {
+                    var parent = device.parents[parentIndex];
+                    if (User.canEdit({
+                            id: parent.id
+                        })) {
+                        promises.push(Browser.loadChildren(parent.id));
+                    }
+                }
+              }
+                  $q.all(promises).then( function(promises) {
+                    var type = iq.getAttribute('type');
+                    if (type == 'result') {
+                      delete Browser.references[device.id];
+                      delete Device.references[device.id];
+                      delete Device.devices[device.id];
+                      deferred.resolve(true);
+                      $modalInstance.close();
+                    } else {
+                      Alert.open('Error', "could not delete node " + iq.toString());
+                      $modalInstance.dismiss();
+                    }
+                  }, function(promises) {
+                    var type = iq.getAttribute('type');
+                    if (type == 'result') {
+                      delete Browser.references[device.id];
+                      delete Device.references[device.id];
+                      delete Device.devices[device.id];
+                      deferred.resolve(true);
+                      $modalInstance.close();
+                    } else {
+                      Alert.open('Error', "could not delete node " + iq.toString());
+                      $modalInstance.dismiss();
+                    }
+                  });
+                  });
+              };
+              $q.all(promises).then(performDelete,performDelete);
+            }, function(result) {
+                Alert.open('Error', "Could not get node " + result);
+
+            });
+            return deferred.promise;
+        };
+        $scope.cancel = function() {
+            $modalInstance.dismiss();
+        };
+        $scope.deleteDevice = function() {
+        	var parent;
+            if (typeof $scope.device.parents != 'undefined' &&
+                Object.keys($scope.device.parents).length > 0){
+                parent = $scope.device.parents[0].id;
+            } else {
+                parent = User.favoritesFolder;
+            }
+            $state.go('device.view.delete', {
+              parent:parent});
+        };
+    });
+    /**
+     * [description]
+     * @param  {[type]} $scope         [description]
+     * @param  {[type]} $modalInstance [description]
+     * @param  {[type]} $http          [description]
+     * @param  {[type]} $state         [description]
+     * @param  {[type]} $stateParams   [description]
+     * @param  {[type]} User           [description]
+     * @param  {[type]} Alert          [description]
+     * @param  {[type]} Device         [description]
+     * @param  {[type]} Folder         [description]
+     * @param  {[type]} Favorite       [description]
+     * @param  {[type]} $q             [description]
+     * @param  {[type]} $timeout       [description]
+     * @return {[type]}                [description]
+     */
+    app.controller('DevFavoritesModalCtrl', function($rootScope, $scope, $modal,
+        $modalInstance, $state, $stateParams, User, Alert, Device, Browser, $q,
+        $timeout) {
         $scope.devBrowserFavorites = {};
         Browser.children = [];
         $scope.newFavorites = [];
@@ -460,18 +636,17 @@
         $scope.isAlreadySelected = false;
         $scope.errors = [];
         Device.constructDevice(User.favoritesFolder, true).then(function(device) {
-           $scope.favorite = device;
-           Browser.children = [device.id];
-           $scope.selectedFolder = device;
+            $scope.favorite = device;
+            Browser.children = [device.id];
+            $scope.selectedFolder = device;
         }, function(error) {
-            $modalInstnace.close();
+            $modal.close();
         });
         Device.constructDevice($stateParams.id, true).then(function(device) {
             $scope.device = device;
             //$scope.device.folders = [];
         }, function(error) {
-            console.log(error + $stateParams.id);
-            $modalInstance.close();
+            $modal.close();
         });
 
 
@@ -497,7 +672,7 @@
             });
             modalInstance.result.then(function(ids) {
                 if (idIndex in ids) {
-                  Browser.loadChildren(ids[idIndex]);
+                    Browser.loadChildren(ids[idIndex]);
                 }
             });
         };
@@ -514,35 +689,36 @@
                     }
                 };
                 return -1;
-        }
-        /**
-         * [addFavorite description]
-         * @param {[type]} $favorite [description]
-         */
+            }
+            /**
+             * [addFavorite description]
+             * @param {[type]} $favorite [description]
+             */
         $scope.addFavorite = function($favorite) {
-                var favorite = {
-                    id: $favorite.id,
-                    name: $favorite.name
-                };
-                var indexNewFavorites = $scope.myIndexOf($scope.newFavorites, favorite);
-                var indexDeletedFavorites = $scope.myIndexOf($scope.favoritesToRemove, favorite);
-                if (indexDeletedFavorites !== -1) {
-                    $scope.favoritesToRemove.splice(indexDeletedFavorites, 1);
-                    return;
-                }
-                if (indexNewFavorites !== -1) {
-                    $scope.isAlreadySelected = true;
-                    return;
-                }
-                $scope.newFavorites.push(favorite);
-                $scope.isAlreadySelected = false;
-         }
+            var favorite = {
+                id: $favorite.id,
+                name: $favorite.name
+            };
+            var indexNewFavorites = $scope.myIndexOf($scope.newFavorites, favorite);
+            var indexDeletedFavorites = $scope.myIndexOf($scope.favoritesToRemove, 
+              favorite);
+            if (indexDeletedFavorites !== -1) {
+                $scope.favoritesToRemove.splice(indexDeletedFavorites, 1);
+                return;
+            }
+            if (indexNewFavorites !== -1) {
+                $scope.isAlreadySelected = true;
+                return;
+            }
+            $scope.newFavorites.push(favorite);
+            $scope.isAlreadySelected = false;
+        }
 
-         /**
-          * [deleteFavorite description]
-          * @param  {[type]} $favorite [description]
-          * @return {[type]}           [description]
-          */
+        /**
+         * [deleteFavorite description]
+         * @param  {[type]} $favorite [description]
+         * @return {[type]}           [description]
+         */
         $scope.deleteFavorite = function($favorite) {
             var indexNewFavorites = $scope.myIndexOf($scope.newFavorites, $favorite);
             if (indexNewFavorites !== -1) {
@@ -550,8 +726,7 @@
             }
         };
 
-        $scope.delete = function() {
-        };
+        $scope.delete = function() {};
         /**
          * submit send the resques to add device to favorite
          */
@@ -563,16 +738,19 @@
                     var folderid = $scope.newFavorites[favorite].id;
                     var tmpDeferred = $q.defer();
                     $scope.allPromise.push(tmpDeferred.promise);
-                        Device.constructDevice(folderid, true).then(function(tmpFolder) {
-                          tmpFolder.addReferences(
-                            [{  type: 'child',
+                    Device.constructDevice(folderid, true).then(function(tmpFolder) {
+                        tmpFolder.addReferences(
+                            [{
+                                type: 'child',
                                 id: $scope.device.id,
                                 metaType: 'device',
                                 name: $scope.device.name
                             }]).then(function(result) {
-                              tmpDeferred.resolve(result);
-                            }, function(result) { tmpDeferred.reject(result);});
-                          });
+                            tmpDeferred.resolve(result);
+                        }, function(result) {
+                            tmpDeferred.reject(result);
+                        });
+                    });
                 }
                 $q.all($scope.allPromise).then(function(response) {
                     $scope.errors = [];
@@ -624,11 +802,10 @@
      */
     //todo get user vcard information
     app.controller('DeviceSetPermissionsCtrl', function($rootScope, $scope,
-      Device, $stateParams, $modalInstance, User, Alert, $state, MortarUser, $http) {
+        Device, $stateParams, $modalInstance, User, Alert, $state, MortarUser, $http) {
         $scope.isFolder = false;
         $scope.permissionsType = 'publisher';
         $scope.username = "";
-        $scope.node = null;
         $scope.permissionsToAdd = [];
         $scope.permissionsToRemove = [];
         $scope.act = "data"; // actuation for actuation node
@@ -653,7 +830,7 @@
                         Device.constructDevice($stateParams['id'], true);
                 }
                 $scope.loadUsers();
-          });
+            });
         $scope.deviceId = $stateParams['id'];
         $scope.usersToAdd = {
             publisher: [],
@@ -723,14 +900,14 @@
                 }, function(error) {
                     Alert.open('warning', 'Could not access permissions for noden');
                     if ($scope.isModal) {
-                      $modalInstance.dismiss();
+                        $modalInstance.dismiss();
                     } else {
-                      $state.go($rootScope.lastState, $rootScope.lastParams);
+                        $state.go($rootScope.lastState, $rootScope.lastParams);
                     }
                 });
             });
         };
-
+		$scope.loadUsers();
         /**
          * addUser Add a user to the new user list
          * @param User $item user to add
@@ -754,7 +931,8 @@
             } else if (indexNewUsers !== -1) {
                 $scope.isAlreadySelected = true;
             } else if ($scope.isInArray(username, $scope.usersToRemove[permission])) {
-                indexToRemove = $scope.isInArray(username, $scope.usersToRemove[permission]);
+                indexToRemove = $scope.isInArray(username, 
+            	  $scope.usersToRemove[permission]);
                 $scope.usersToRemove[permission].splice(indexToRemove);
                 if (typeof $scope.usersToAdd[permission] == 'undefined')
                     $scope.usersToAdd[permission] = [];
@@ -778,10 +956,10 @@
                 }
                 return false;
             }
-         /**
-          * removeUser remove a user permissions
-          * @param  User user User service
-          */
+            /**
+             * removeUser remove a user permissions
+             * @param  User user User service
+             */
         $scope.removeUser = function(user) {
                 var affil;
                 var indexNewUsers;
@@ -798,10 +976,10 @@
                     $scope.node.users.splice(indexPermittedUsers, 1);
                     $scope.usersToRemove.push(user);
                 }
-         }
-         /**
-          * add and remove permissions to selected users
-          */
+            }
+        /**
+         * add and remove permissions to selected users
+         */
         $scope.setPermissions = function() {
             $scope.permissionPromises = [];
             if ($scope.usersToAdd['publisher'].length > 0) {

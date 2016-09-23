@@ -1,57 +1,85 @@
 <div class="container-fluid">
-  <div class="row">
-    <h3>User Profile
+    <div class="row">
+        <h3>User Profile
       <small class="pull-right from-group">
-        <button class="btn gray-btn" ui-sref="user.edit({username:user.username})"><i class="fa fa-pencil-square-o"></i>Edit</button>
-        <button ng-click="changePassword()" class="btn gray-btn"><i class="fa fa-key"></i>Change password</button>
-        <button ng-click="deleteUser()" ng-if="allowDelete" class="btn gray-btn"><i class="fa fa-trash-o"></i>Delete</button>
+        <button class="btn gray-btn" 
+          ui-sref="user.edit({isEdit:true,username:user.username})">
+        	<i class="fa fa-pencil-square-o"></i>
+        	Edit
+        </button>
+        <button ng-click="changePassword()" class="btn gray-btn">
+        	<i class="fa fa-key"></i>
+        	Change password
+        </button>
+        <button ng-click="deleteUser()" ng-if="allowDelete" class="btn gray-btn">
+        	<i class="fa fa-trash-o"></i>
+        		Delete
+        </button>
       </small>
     </h3>
-    <div class="col-md-6">
-      <p><strong>Name:</strong> {{user.name}}</p>
-      <p><strong>Email:</strong> {{user.email}}</p>
-      <p><strong>User:</strong> {{user.username}}</p>
-      </div>
-    <div class="col-md-6">
-      <p><strong>Type:</strong> {{user.group}}</p>
-      <p><strong>Root folder:</strong> {{user.rootFolder}}</p>
-      <p><strong>Favorites folder:</strong> {{user.favoritesFolder}}</p>
+        <div class="col-md-6">
+            <p><strong>Name:</strong> {{user.name}}</p>
+            <p><strong>Email:</strong> {{user.email}}</p>
+            <p><strong>User:</strong> {{user.username}}</p>
+        </div>
+        <div class="col-md-6">
+            <p><strong>Type:</strong> {{user.group}}</p>
+            <p><strong>Root folder:</strong> {{user.rootFolder}}</p>
+            <p><strong>Favorites folder:</strong> {{user.favoritesFolder}}</p>
+        </div>
     </div>
-  </div>
-  <div class="row" ng-if="showDevices" ng-cloack>
-    <h4>Allowed Devices and Folders</h4>
-    <p>List of devices and folders that you have access to</p>
-    <div class="col-md-4">
-      <p><strong>Owner</strong></p>
-      <ul ng-hide="user.permittedDevices['owner'].length==0">
-        <li ng-repeat="node in user.permittedDevices['owner']"> {{node}} - {{devices[node].name}} - {{devices[node].type}}
-          <a href ng-click="viewNodeDetail(node)" title="View details"><i class="fa" ng-class="{'fa-file-text-o':node.type!='location','fa-folder-o':node.type=='location'}">
-          </i> </a>
-        </li>
-      </ul>
-      <p ng-show="user.permittedDevices['owner'].length==0">No devices or folders in this category</p>
+    <div class="row" ng-if="showDevices" ng-cloack>
+        <h4>Allowed Devices and Folders</h4>
+        <p>List of devices and folders that you have access to</p>
+        <div class="col-md-4">
+            <p><strong>Owner</strong></p>
+            <ul ng-hide="user.permittedDevices['owner'].length==0">
+                <li ng-repeat="node in user.permittedDevices['owner']"> 
+                	{{node}} - {{devices[node].name}} - {{devices[node].type}}
+                    <a href ng-click="viewNodeDetail(node)" title="View details">
+                    	<i class="fa" 
+                     	  ng-class="{'fa-file-text-o':node.type!='location','fa-folder-o':node.type=='location'}">
+          				</i> 
+          			</a>
+                </li>
+            </ul>
+            <p ng-show="user.permittedDevices['owner'].length==0">
+            	No devices or folders in this category
+            </p>
+        </div>
+        <div class="col-md-4">
+            <p><strong>Publisher</strong></p>
+            <ul ng-hide="user.permittedDevices['publisher'].length==0">
+                <li ng-repeat="node in user.permittedDevices['publisher']">
+                	{{node}} - {{devices[node].name}} - {{devices[node].type}}
+                    <a href ng-click="viewNodeDetail(node)" title="View details">
+                    	<i class="fa" 
+                    		ng-class="{'fa-file-text-o':node.type!='location','fa-folder-o':node.type=='location'}">
+                   		</i> 
+                    </a>
+                </li>
+            </ul>
+            <p ng-show="user.permittedDevices['publisher'].length==0">
+            	No devices or folders in this category
+            </p>
+        </div>
+        <div class="col-md-4">
+            <p><strong>Subscriber</strong></p>
+            <ul ng-hide="user.subscriptions.length==0">
+                <li ng-repeat="node in user.subscriptions">
+                    {{node.node}} - {{node.jid}} - {{node.subscription}} - {{node.subid}}
+                    <a href ng-click="viewNodeDetail(node.node)" title="View details">
+                    	<i class="fa" 
+                    	  ng-class="{'fa-file-text-o':devices[node].type!='location','fa-folder-o':devices[node].type=='location'}">
+          				</i> 
+          			</a>
+                </li>
+            </ul>
+            <p ng-show="user.subscriptions.length==0">
+            	No devices or folders in this category
+            </p>
+        </div>
     </div>
-    <div class="col-md-4">
-      <p><strong>Publisher</strong></p>
-      <ul ng-hide="user.permittedDevices['publisher'].length==0">
-        <li ng-repeat="node in user.permittedDevices['publisher']">{{node}} - {{devices[node].name}} - {{devices[node].type}}
-          <a href ng-click="viewNodeDetail(node)" title="View details"><i class="fa" ng-class="{'fa-file-text-o':node.type!='location','fa-folder-o':node.type=='location'}"></i> </a>
-        </li>
-      </ul>
-      <p ng-show="user.permittedDevices['publisher'].length==0">No devices or folders in this category</p>
-    </div>
-    <div class="col-md-4">
-      <p><strong>Subscriber</strong></p>
-      <ul ng-hide="user.permittedDevices['subscribed'].length==0">
-        <li ng-repeat="node in user.permittedDevices['subscribed']">
-            {{node}} - {{devices[node].name}} - {{devices[node].type}}
-          <a href ng-click="viewNodeDetail(node)" title="View details"><i class="fa" ng-class="{'fa-file-text-o':devices[node].type!='location','fa-folder-o':devices[node].type=='location'}">
-          </i> </a>
-        </li>
-      </ul>
-      <p ng-show="user.permittedDevices['subscribed'].length==0">No devices or folders in this category</p>
-    </div>
-  </div>
 </div>
 <div cg-busy="getUserDetailPromise"></div>
 <div cg-busy="getUserDevices"></div>

@@ -1,24 +1,28 @@
 <div id="login" class="login" ng-controller="LoginCtrl">
-  <h1 class="text-center">Sensor Andrew</h1>
-  <form name="loginForm" role="form" ng-submit="login()" novalidate>
-    <div class="form-group">
-      <label for="username">Username:</label>
-      <input class="form-control" type="text" name="username" ng-model="username" id="username" required>
-    </div>
-    <div class="form-group">
-      <label for="password">Password:</label>
-      <input class="form-control" type="password" name="password" ng-model="password" id="password" required>
-    </div>
-    <button type="submit" class="btn btn-default" ng-disabled="loginForm.$invalid">Login</button>
-    <label class="btn  ">
+    <h1 class="text-center">Sensor Andrew</h1>
+    <form name="loginForm" role="form" ng-submit="login()" novalidate>
+        <div class="form-group">
+            <label for="username">Username:</label>
+            <input class="form-control" type="text" name="username" ng-model="user.username" id="username" required>
+        </div>
+        <div class="form-group">
+            <label for="password">Password:</label>
+            <input class="form-control" type="password" name="password" ng-model="user.password" id="password" required>
+        </div>
+        <button type="submit" class="btn btn-default" ng-disabled="!loginFormIsValid()">Login</button>
+        <div cg-busy="loginPost"></div>
+        <label class="btn  ">
       <input type="checkbox" ng-model="stayLoggedIn" name="stayLoggedIn"> Stay Logged In
     </label>
-    <a ui-sref="forgotPassword" class="btn btn-link" ng-click="forgotPassword()">Forgot password</a>
-    <div cg-busy="loginPost"></div>
-  </form>
-  <br>
-  <br>
-  <div align="right">
-  Powered by <a href="http://dev.mortr.io">Mortar.io</a>
-  </div>
+        <br>
+        <p>
+            <a ui-sref="forgotPassword" class="btn btn-link" ng-click="forgotPassword()">Forgot password</a>
+            <a class="btn btn-link" ng-click="register()">Need an account?</a>
+        </p>
+    </form>
+    <br>
+    <br>
+    <div align="right">
+        Powered by <a href="http://dev.mortr.io">Mortar.io</a>
+    </div>
 </div>
