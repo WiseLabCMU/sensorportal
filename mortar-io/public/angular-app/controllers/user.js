@@ -2,8 +2,9 @@
  * User controller module
  */
 (function() {
-    var app = angular.module('user-controller', ['ui.router', 'mortar-services', 'mortar-directives',
-        'cgBusy', 'angularTreeview', 'ui.bootstrap', 'xml-rpc', 'rt.timeout'
+    var app = angular.module('user-controller', ['ui.router', 'mortar-services',
+        'cgBusy', 'angularTreeview', 'ui.bootstrap', 'xml-rpc', 'rt.timeout',
+        'mortar-directives'
     ]);
 
     //Todo
@@ -16,28 +17,26 @@
      * @author Jairo Diaz Montero <jairo.diaz.montero.07@gmail.com>
      */
     app.controller('UsersCtrl', function($scope, Alert, MortarUser, $modal,
-      User, $q, $timeout) {
+        User, $q, $timeout) {
         // todo extend to people who do not have xmlrpc access
         $scope.users = [];
         $scope.user = User;
-        $scope.$watch(function(){return User;
-          }, function(oldValue, newValue) {
-          $scope.user = newValue;
+        $scope.$watch(function() {
+            return User;
+        }, function(oldValue, newValue) {
+            $scope.user = newValue;
         });
-        $scope.userCallback = function (i) {
-          return function(userResponse) {
-            $scope.users[i] = userResponse;
-          }
+        $scope.userCallback = function(i) {
+            return function(userResponse) {
+                $scope.users[i] = userResponse;
+            }
         };
         $scope.usersGetPromise = MortarUser.getUsers().then(
             function(response) {
-                console.log(response);
                 if (typeof response === 'undefined') {
                     return null;
                 }
                 if (typeof response.error != 'undefined') {
-                    console.log("response.error");
-                    console.log(response.error);
                     return response.error;
                 }
                 var promises = [];
@@ -93,10 +92,9 @@
                     }
                 }
             }).result.then(function(result) {
-                // @todo handle result
-            }, function() {
-                MortarUser.user.password = '';
-                MortarUser.user.password2 = '';
+                
+            }, function(result) {
+                Alert.open(result);
             });
         };
     });
@@ -113,28 +111,28 @@
      * @author Jairo Diaz Montero <jairo.diaz.montero.07@gmail.com>
      */
     app.controller('UserProfileCtrl', function($scope, $stateParams, User,
-      $state, $modal, MortarUser, Alert, Device) {
+        $state, $modal, MortarUser, Alert, Device) {
         $scope.devices = {};
         if (typeof $stateParams.username == 'undefined') {
-            console.log("Username undefined");
+            
         } else if ($stateParams.username == User.username) {
-          $scope.user = User;
-          User.nodes = {};
-          //load first ten devices
-          for (permittedTypeIndex in $scope.user.permittedDevices) {
-              var permittedType = $scope.user.permittedDevices[permittedTypeIndex];
-              var count = 0;
-              for (permittedDevice in permittedType) {
-                 console.log(permittedTypeIndex);
-                 Device.constructDevice(permittedDevice, true).then(function(device) {
-                     $scope.devices[device.id] = device;
-                 });
-                 count++;
-                 if (count == 10) {
-                   break;
-                 }
-              }
-          }
+            $scope.user = User;
+            User.nodes = {};
+            //load first ten devices
+            for (permittedTypeIndex in $scope.user.permittedDevices) {
+                var permittedType = $scope.user.permittedDevices[permittedTypeIndex];
+                var count = 0;
+                for (permittedDevice in permittedType) {
+                    Device.constructDevice(permittedDevice, true).then(
+                        function(device) {
+                        	$scope.devices[device.id] = device;
+                    	});
+                    count++;
+                    if (count == 10) {
+                        break;
+                    }
+                }
+            }
         } else if ($stateParams.username.indexOf('@') >= 0) {
             user = $stateParams.username;
         } else {
@@ -142,10 +140,10 @@
         }
 
         if (typeof $scope.user == 'undefined') {
-          $scope.getUserPromise = MortarUser.get(user).then(function(result) {
-              $scope.user = result;
+            $scope.getUserPromise = MortarUser.get(user).then(function(result) {
+                $scope.user = result;
             }, function(errorstanza) {
-              Alert.open('warning', errorstanza);
+                Alert.open('warning', errorstanza);
             });
         }
 
@@ -166,6 +164,8 @@
                     }
                 }).result.then(function(result) {
                     // @todo handle result
+                }, function(result) { 
+                	Alert.open('error', result);
                 });
             },
             function() {};
@@ -173,13 +173,14 @@
         //Todo
         $scope.getUserInfo = function() {
                 var deferred = $q.defer();
-                if (typeof $scope.user.username != 'undefined' && MortarUserFactory.user.username == username) {
+                if (typeof $scope.user.username != 'undefined' && 
+                  MortarUserFactory.user.username == username) {
                     deferred.resolve(MortarUserFactory.user);
                     return deferred.promise;
                 }
                 return MortarUser.get($scope.user.username);
-        }
-        // removes an user from users
+            }
+            // removes an user from users
         $scope.deleteUser = function() {
             if (confirm('Are you sure to delete this user?')) {
                 $scope.deleteUserPromise = MortarUser.delete($scope.user.username);
@@ -198,9 +199,9 @@
          */
         $scope.viewNodeDetail = function(node) {
 
-                $state.go('device.view.detail', {
-                    id: node
-                });
+            $state.go('device.view.detail', {
+                id: node
+            });
         }
     });
 
@@ -216,8 +217,7 @@
      * @author Jairo Diaz Montero <jairo.diaz.montero.07@gmail.com>
      */
     app.controller('UserCreateEditCtrl', function($scope, $modalInstance, User,
-      MortarUser, username, Alert, Browser, Device) {
-        $scope.user = {};
+        MortarUser, $stateParams, Alert, Browser, Device) {
         $scope.devBrowserUserRoot = {};
         $scope.userRootFolder = {};
         $scope.folderLoaded = false;
@@ -232,82 +232,115 @@
             value: 'user',
             label: 'User'
         }];
+        if ($stateParams.username == User.username) {
+            $scope.editSelf = true;
+        } else {
+            $scope.editSelf = false;
+        }
 
         // If username is passed then load this user's data
-        if (username) {
+        if (typeof username != 'undefined') {
+        	if (username == User.username) { 
+        		$scope.user = User;
+        		$scope.getFolderPromise = Device.constructDevice(
+                    $scope.user.rootFolder, true);
+                $scope.getFolderPromise.then(function(folder) {
+                    $scope.userRootFolder = folder;
+                    $scope.userCopy = folder;
+                    Browser.references[$scope.user.rootFolder] = $scope.userRootFolder;
+                    $scope.selectedFolder = $scope.user.rootFolder;
+                    $scope.folderLoaded = true;
+                }, function(response) {
+                    Alert.open('warning', response);
+                });
+        	} else {
             $scope.userCopy = {};
-            console.log(User);
-            if (username == User.username) {
-              $scope.user = User;
-            } else {
-              $scope.getUserPromise = MortarUser.get(username);
-              $scope.getUserPromise.then(function(response) {
-                  $scope.user = response;
-                  $scope.getFolderPromise = Device.constructDevice($scope.user.rootFolder, true);
-                  $scope.getFolderPromise.then(function(folder) {
-                      $scope.userRootFolder = folder;
-                      $scope.userCopy = folder;
-                      Browser.references[$scope.user.rootFolder] = $scope.userRootFolder;
-                      $scope.selectedFolder = $scope.user.rootFolder;
-                      $scope.folderLoaded = true;
-                    }, function(response) {
-                      Alert.open('warning', response);
-                    });
-                    angular.copy($scope.user, $scope.userCopy);
+            $scope.getUserPromise = MortarUser.get(username);
+            $scope.getUserPromise.then(function(response) {
+                $scope.user = response;
+                $scope.getFolderPromise = Device.constructDevice(
+                    $scope.user.rootFolder, true);
+                $scope.getFolderPromise.then(function(folder) {
+                    $scope.userRootFolder = folder;
+                    $scope.userCopy = folder;
+                    Browser.references[$scope.user.rootFolder] = $scope.userRootFolder;
+                    $scope.selectedFolder = $scope.user.rootFolder;
+                    $scope.folderLoaded = true;
+                }, function(response) {
+                    Alert.open('warning', response);
+                });
+                angular.copy($scope.user, $scope.userCopy);
             }, function(response) {
                 $modalInstance.close(false);
                 Alert.open('warning', response);
             });
-            $scope.isEdit = true;
-          }
+            $scope.createUser = false;
+            }
+        } else {
+            $scope.createUser = true;
         }
-
+        
+		$scope.isEdit = function () { 
+			return $stateParams.isEdit;
+		}
+		
         // sets the selected folder to user
         $scope.selectFolder = function(folder) {
-            $scope.user.rootFolder = folder.id;
+                $scope.user.rootFolder = folder.id;
+        }
+        
+        // edit existing user's vcard
+        $scope.editUser = function() {
+            $scope.saveUserPromise = MortarUser.save($scope.userCopy);
+            $scope.saveUserPromise.then(function(response) {
+                $scope.user = $scope.userCopy;
+                MortarUser.getUsers().then(
+                    function(response) {
+                        $scope.users = users;
+                    }
+                );
+                Alert.open('success', response);
+                $modalInstance.close(true);
+            }, function(response) {
+                $modalInstance.close(true);
+            });
+        };
+
+        // create a new user
+        $scope.createUser = function() {
+            var data = {
+                name: $scope.user.name,
+                email: $scope.user.email,
+                group: $scope.user.group,
+                username: $scope.user.username,
+                password: $scope.user.password,
+                password2: $scope.user.password2,
+                root_folder: $scope.user.rootFolder,
+                favorites_folder: $scope.user.favoritesFolder
+            };
+
+            $scope.createUserPromise = MortarUser.create(data);
+            $scope.createUserPromise.then(function(response) {
+                Alert.open('success', response);
+                MortarUser.getUsers().then(
+                    function(response) {
+                        $scope.users = users;
+                    }
+                );
+                $modalInstance.close(true);
+            }, function(response) {
+                $scope.cp.error = true;
+                $scope.cp.errorMessage = response;
+                $modalInstance.close(response);
+            });
         }
 
         // Save user data, this handles both user creation and editing
         $scope.saveUser = function() {
             if ($scope.isEdit) {
-                $scope.saveUserPromise = MortarUser.save($scope.userCopy);
-                $scope.saveUserPromise.then(function(response) {
-                    $scope.user = $scope.userCopy;
-                    MortarUser.getUsers().then(
-                        function(response) {
-                            $scope.users = users;
-                        }
-                    );
-                    Alert.open('success', response);
-                    $modalInstance.close(true);
-                }, function(response) {
-                    $modalInstance.close(true);
-                });
+                $scope.editUser();
             } else {
-                var data = {
-                    name: $scope.user.name,
-                    email: $scope.user.email,
-                    group: $scope.user.group,
-                    username: $scope.user.username,
-                    password: $scope.user.password,
-                    password2: $scope.user.password2,
-                    root_folder: $scope.user.rootFolder,
-                    favorites_folder: $scope.user.favoritesFolder
-                };
-
-                $scope.createUserPromise = MortarUser.create(data);
-                $scope.createUserPromise.then(function(response) {
-                    Alert.open('success', response);
-                    MortarUser.getUsers().then(
-                        function(response) {
-                            $scope.users = users;
-                        }
-                    );
-                    $modalInstance.close(true);
-                }, function(response) {
-                    $scope.cp.error = true;
-                    $scope.cp.errorMessage = response;
-                });
+                $scope.createUser();
             }
         };
 
@@ -328,7 +361,7 @@
      * @author Jairo Diaz Montero <jairo.diaz.montero.07@gmail.com>
      */
     app.controller('UserInitCtrl', function($scope, $modalInstance, MortarUser,
-        username, password, User, Alert, Browser) {
+        username, User, Alert, Browser) {
         $scope.cp = {
             error: false,
             errorMessage: ''
@@ -343,14 +376,14 @@
         //Todo inband registration
         // Save user data, this handles both user creation and editing
         $scope.saveUser = function() {
-            var data = {
+            /*var data = {
                 name: $scope.user.name,
                 email: $scope.user.email,
                 group: $scope.user.group,
                 username: $scope.user.username,
                 password: password,
                 root_folder: $scope.user.rootFolder
-            };
+            };*/
             if ($scope.user.email != '') User.name = $scope.user.name;
             if ($scope.user.email != '') User.email = $scope.user.email;
             $scope.createUserPromise = User.setVcard(User.name, User.email);
@@ -386,43 +419,42 @@
      *@param service User service instance to manage logged in user actions
      *@author Jairo Diaz Montero <jairo.diaz.montero.07@gmail.com>
      */
-    app.controller('UserChangePasswordCtrl', function($scope, $modalInstance, Alert, strUsername, MortarUser, User) {
-        $scope.user = {};
+    app.controller('UserChangePasswordCtrl', function($scope, $stateParams, 
+      $modalInstance, Alert, strUsername, MortarUser, User) {
         $scope.cp = {
             error: false,
             errorMessage: ''
         };
-        $scope.getUserPromise = MortarUser.get(strUsername);
-        $scope.getUserPromise.then(function(response) {
-            $scope.user = response;
-            $scope.user.password = '';
-            $scope.user.password2 = '';
-        }, function(response) {
-            $scope.cp.error = true;
-            $scope.cp.errorMessage = response;
-        });
-
+        if ($stateParams.username == User.username) { 
+        	$scope.user = User;
+        	$scope.user.password = '';
+        	$scope.user.password2 = '';
+        } else {
+			$scope.getUserPromise = MortarUser.get($stateParams.username);
+        	$scope.getUserPromise.then(function(response) {
+            	$scope.user = response;
+            	$scope.user.password = '';
+            	$scope.user.password2 = '';
+        	}, function(response) {
+            	$scope.cp.error = true;
+            	$scope.cp.errorMessage = response;
+        	});
+		}
         $scope.changePassword = function() {
-            $scope.changePasswordPromise = $scope.user.changePassword();
+            $scope.changePasswordPromise = $scope.user.changePassword(
+              $scope.user.password);
             $scope.changePasswordPromise.then(function(response) {
                 // set new user token
                 if ($scope.user.username === User.username) {
                     User.token = response.token;
                     User.saveSession();
                 }
-                $scope.updateUserPromise = $scope.user.update();
-                $scope.updateUserPromise.then(function(response) {
-                    Alert.open('success', response);
-                    $modalInstance.close(true);
-                }, function(response) {
-                    Alert.open('warning', 'Changes successfully saved, but view could not be updated, try reloading.');
-                    $modalInstance.close(true);
-                });
+                $modalInstance.close(true);
             }, function(response) {
                 $scope.cp.error = true;
                 $scope.cp.errorMessage = response;
             });
-        }
+        };
 
         $scope.cancel = function() {
             $modalInstance.dismiss();

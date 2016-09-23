@@ -5,10 +5,10 @@
     return {
       restrict: 'A',
       scope: true,
-      templateUrl: '/angular-app/partials/multicontrol-template.html', 
+      templateUrl: '/angular-app/partials/multicontrol-template.html',
       link: function(scope,element,attrs){
 
-        var callbackFunction =attrs.callbackFunction || 'runCommands';
+        var callbackFunction = attrs.callbackFunction || 'runCommands';
         scope.submit = function(){
           Alert.close();
           var commands = [];
@@ -27,7 +27,7 @@
                 transducer: inputAttrs.transducer.value,
                 value: input.val(),
                 // el:el
-              });            
+              });
             }else{
               input.addClass('invalid');
               return;
@@ -37,7 +37,7 @@
             var commandsCopy = [];
             angular.copy(commands,commandsCopy);
             scope.standBy = true;
-            scope[callbackFunction](commandsCopy);         
+            scope[callbackFunction](commandsCopy);
           }
         }
       }

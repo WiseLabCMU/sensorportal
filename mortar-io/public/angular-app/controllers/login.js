@@ -16,31 +16,116 @@
      * @param  service Folder
      * @param  service $modal
      */
+    app.controller('UserRegisterCtrl', function($scope, MortarUser, User, $state,
+        Alert, $modalInstance, Browser, xmlrpc, $window, $q) {
+
+        $scope.user = '';
+        $scope.password = '';
+        $scope.passwordConfirm = '';
+        $scope.waitTime = 5000; // 5 seconds
+        $scope.formLoaded = false;
+        $scope.form = null;
+        $scope.connection = null;
+
+        $scope.domainSelected = function(domain) {
+            if (typeof domain === 'undefined' || domain == '') {
+                return;
+            }
+            $scope.loadForm = $q.defer();
+            var boshEndpoint = 'http://' + domain + ':5280/http-bind/';
+            Strophe.TIMEOUT = 10000;
+            $scope.connection = new Strophe.Connection(boshEndpoint);
+            $scope.connection.register.connect(domain, function(status) {
+              if (status === Strophe.Status.REGISTER) {
+                $scope.formLoaded = true;
+                $scope.loadForm.resolve(true);
+              } else if (status === Strophe.Status.REGISTERED) {
+                User.username =  $scope.connection.register.fields.username +
+                  '@' +$scope.domain;
+                User.password = $scope.connection.register.fields.password;
+                $modalInstance.close();
+              } else if (status === Strophe.Status.CONFLICT) {
+                Alert.open('error',"Username already exists!");
+              } else if (status === Strophe.Status.NOTACCEPTABLE) {
+                Alert.open("Registration form not properly filled out.")
+              } else if (status === Strophe.Status.REGIFAIL) {
+                Alert.open('warning', "The server at " + domain + " does not allow registration.");
+                $modalInstance.dismiss();
+              } else if (status === Strophe.Status.CONNECTED) {
+                // do something after successful authentication
+              } else {
+                // Do other stuff
+              }
+              },
+                $scope.waitTime);
+        };
+
+        $scope.$watch('domain', function(oldValue, newValue) {
+          $scope.domainSelected(newValue);
+        });
+        $scope.cancel = function() {
+            $modalInstance.dismiss();
+        }
+        $scope.submit = function() {
+            $scope.connection.register.submit();
+        };
+        $scope.allFieldsFilled = function() {
+            if (!$scope.formLoaded) {
+                return false;
+            }
+            for (key in $scope.connection.register.fields) {
+                var value = $scope.connection.register.fields[key];
+                if (value == '') {
+                    return false;
+                }
+            }
+            return true;
+        };
+
+        $scope.domain = 'sensor.andrew.cmu.edu';
+
+    });
+    /**
+     * Controller for managing user login / logout
+     * @param  object $scope
+     * @param  service MortarUser
+     * @param  service $scope.user
+     * @param  service $http
+     * @param  service $state
+     * @param  service Alert
+     * @param  service Folder
+     * @param  service $modal
+     */
     app.controller('LoginCtrl', function($scope, MortarUser, User, $state,
-      Alert, $modal, Browser, xmlrpc, $window) {
-        $scope.username = '';
+        Alert, $modal, Browser, xmlrpc, $window) {
         $scope.user = User;
 
+        $scope.loginFormIsValid = function() {
+          return typeof $scope.user != 'undefined' && $scope.user.username != 'undefined'
+            && $scope.user.password != 'undefined' && $scope.user.username != ''
+            && $scope.user.password != '';
+        }
         /**
          * Authenticates the user.
          */
         $scope.login = function() {
-            if (!$scope.username.includes("@")) {
-                $scope.username = $scope.username + "@sensor.andrew.cmu.edu";
+            if (!$scope.user.username.includes("@")) {
+                $scope.user.username = $scope.user.username + "@sensor.andrew.cmu.edu";
             }
-            $scope.loginPost = User.login($scope.username, $scope.password, $scope.stayLoggedIn);
+            $scope.loginPost = User.login($scope.user.username, $scope.user.password, $scope.stayLoggedIn);
             $scope.loginPost.then(function(response) {
                 $scope.userInfoPost = User.getVcard();
                 $scope.userInfoPost.then(function(success) {
                     Browser.children = [User.rootFolder, User.favoritesFolder];
                     Browser.init().then(function(result) {
                         var sessionState = JSON.parse($window.sessionStorage.getItem("State"));
-                        if (typeof sessionState != 'undefined' && sessionState != null) {
+                        if (typeof sessionState != 'undefined' &&
+                          sessionState != null && sessionState != '') {
                                   $state.go(sessionState.state, sessionState.params);
                         } else {
-                            $state.go('device.list', {
-                                folder: User.rootFolder
-                              });
+                          $state.go('device.list', {
+                              folder: User.rootFolder
+                          });
                         }
                     });
                 }, function(response) {
@@ -49,10 +134,7 @@
                         controller: 'UserInitCtrl',
                         resolve: {
                             username: function() {
-                                return $scope.username;
-                            },
-                            password: function() {
-                                return $scope.password;
+                                return $scope.user.username;
                             }
                         }
                     });
@@ -76,7 +158,11 @@
                         Alert.open('danger', 'Vcard request failed.');
                     });
                 });
-            });
+            }, function(result) {
+                Alert.close();
+                Alert.open('error',result);
+            }
+          );
         };
         /**
          * Logs the user out, and takes him to the login screen
@@ -86,6 +172,19 @@
             User.logout();
             $state.go('login');
             Alert.open('success', 'Logged out');
+        };
+        /**
+         * Begins in band registration process
+         */
+        $scope.register = function() {
+            $modal.open({
+              templateUrl: '/angular-app/partials/register.html',
+              controller: 'UserRegisterCtrl',
+              scope: $scope
+              }).result.then(function(result){
+                $scope.user.username = User.username;
+                $scope.user.password = User.password;
+            });
         };
         /**
          * opens the forgot password modal, when dismissed shows alert with result
@@ -111,27 +210,27 @@
             username: '',
             error: false,
             errorMessage: ''
-    };
+        };
 
-    /**
-     * Sends an email to the user to change password
-     * on success closes the modal, if not, notifies the user of error.
-     */
-    //todo
-    $scope.forgotPassword = function() {
-      /* $scope.cp.emailPromise = User.forgotPassword($scope.cp.username);
-      $scope.cp.emailPromise.then(function(result) {
-          $modalInstance.close(result);
-      }, function(result) {
-          $scope.cp.error = true;
-          $scope.cp.errorMessage = result;
-      });*/
-    }
+        /**
+         * Sends an email to the user to change password
+         * on success closes the modal, if not, notifies the user of error.
+         */
+        //todo
+        $scope.forgotPassword = function() {
+            /* $scope.cp.emailPromise = User.forgotPassword($scope.cp.username);
+            $scope.cp.emailPromise.then(function(result) {
+                $modalInstance.close(result);
+            }, function(result) {
+                $scope.cp.error = true;
+                $scope.cp.errorMessage = result;
+            });*/
+        }
 
-    /**
-     * Dismisses the modal
-     */
-    $scope.cancel = function() {
+        /**
+         * Dismisses the modal
+         */
+        $scope.cancel = function() {
             $modal.dismiss();
         }
     });

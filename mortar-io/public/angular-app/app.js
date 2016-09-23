@@ -8,11 +8,31 @@
      * @param  object $urlRouterProvider ui-router service
      */
     app.config(function($stateProvider, $urlRouterProvider) {
-        $urlRouterProvider.otherwise('/login');
+        $urlRouterProvider.otherwise('/login/');
         $stateProvider.
         state('login', {
-            url: '/login',
+            url: '/login/',
             templateUrl: '/angular-app/partials/login.html',
+            data: {
+                groups: [],
+                isModal: false
+            }
+        }).
+        state('login.register', {
+            url: '/login/register',
+            onEnter: function($state, $modal, $stateParams) {
+                $modal.open({
+                    templateUrl: '/angular-app/partials/register.html',
+                    controller: 'UserRegisterCtrl',
+                }).result.then(function(result) {
+                    if (result) {
+                        // todo: once registered go to device list
+                        return $state.go('login');
+                    }
+                }, function() {
+                    return $state.go('login');
+                });
+            },
             data: {
                 groups: [],
                 isModal: false
@@ -34,15 +54,15 @@
             }
         }).
         state('device.list.edit', {
-            url: '/edit',
+            url: '/edit/?isUpdate',
             onEnter: function($state, $modal, $stateParams) {
                 $modal.open({
-                    templateUrl: '/angular-app/partials/device-modal.html',
+                    templateUrl: '/angular-app/partials/FolderModal.html',
                     controller: 'FolderModalCtrl',
                 }).result.then(function(result) {
                     if (result) {
                         return $state.go('device.list', {
-                            folder: $stateParams['folder']
+                            folder: $stateParams['folder'],
                         });
                     }
                 }, function() {
@@ -63,9 +83,9 @@
                     templateUrl: '/angular-app/partials/device-favorites-modal.html',
                     controller: 'FolderFavoritesModalCtrl'
                 }).result.then(function(result) {
-                        return $state.go('device.list', {
-                          folder: $stateParams['id']
-                        });
+                    return $state.go('device.list', {
+                        folder: $stateParams['id']
+                    });
                 }, function() {
                     return $state.go('device.list', {
                         folder: $stateParams['id']
@@ -77,8 +97,29 @@
                 isModal: true
             }
         }).
+        state('device.list.delete', {
+            url: '/delete/?id?parent',
+            onEnter: function($state, $stateParams, $modal) {
+                $modal.open({
+                    templateUrl: '/angular-app/partials/device-delete.html',
+                    controller: 'DeviceDeleteCtrl'
+                }).result.then(function(result) {
+                    return $state.transitionTo('device.list', {
+                        folder: $stateParams['parent']
+                    });
+                }, function() {
+                    return $state.transitionTo('device.list', {
+                        folder: $stateParams['id']
+                    });
+                });
+            },
+            data: {
+                groups: [],
+                isModal: true
+            }
+        }).
         state('device.map', {
-            url: '/map/:folder',
+            url: '/map/?folder',
             templateUrl: '/angular-app/partials/device-map-list.html',
             controller: 'FolderMapCtrl',
             data: {
@@ -121,17 +162,18 @@
             }
         }).
         state('device.view', {
-            url: '/:id',
+            url: '/?id',
             templateUrl: '/angular-app/partials/device-view.html',
             controller: 'DeviceCtrl',
             abstract: true
         }).
         state('device.view.edit', {
-            url: '/edit/?id',
+            url: '/edit',
             onEnter: function($state, $modal, $stateParams) {
                 $modal.open({
                     templateUrl: '/angular-app/partials/device-modal.html',
                     controller: 'DeviceModalCtrl',
+                    //controllerAs: 'DeviceModal',
                 }).result.then(function(result) {
                     if (result) {
                         return $state.go('device.view.detail', {
@@ -183,6 +225,62 @@
             data: {
                 groups: [],
                 isModal: false
+            }
+        }).
+        state('device.view.delete', {
+            url: '/delete/?parent',
+            onEnter: function($state, $stateParams, $modal) {
+                $modal.open({
+                    templateUrl: '/angular-app/partials/device-delete.html',
+                    controller: 'DeviceDeleteCtrl'
+                }).result.then(function(result) {
+                    return $state.go('device.list', {
+                        folder: $stateParams['parent']
+                    });
+                }, function() {
+                    return $state.go('device.view.detail', {
+                        folder: $stateParams['id']
+                    });
+                });
+            },
+            data: {
+                groups: [],
+                isModal: true
+            }
+        }).
+        state('device.view.functions', {
+            url: '/functions',
+            templateUrl: '/angular-app/partials/device-functions.html',
+            controller: 'DeviceFunctionsCtrl',
+            data: {
+                groups: [],
+                isModal: false
+            }
+        }).
+        state('device.view.favorites', {
+            url: '/favorites/',
+            onEnter: function($state, $stateParams, $modal) {
+                $modal.open({
+                    templateUrl: '/angular-app/partials/device-favorites-modal.html',
+                    controller: 'FolderFavoritesModalCtrl',
+                    data: {
+                		folder: $stateParams['id']
+                		}
+                }).result.then(function(result) {
+                    if (result) {
+                        return $state.go('device.view.detail', {
+                            id: $stateParams['id']
+                        });
+                    }
+                }, function() {
+                    return $state.go('device.view.detail', {
+                        id: $stateParams['id']
+                    });
+                });
+            },
+            data: {
+                groups: [],
+                isModal: true
             }
         }).
         state('devicecreate', {
@@ -272,38 +370,6 @@
                 isModal: false
             }
         }).
-        state('device.view.functions', {
-            url: '/functions',
-            templateUrl: '/angular-app/partials/device-functions.html',
-            controller: 'DeviceFunctionsCtrl',
-            data: {
-                groups: [],
-                isModal: false
-            }
-        }).
-        state('device.view.favorites', {
-            url: '/favorites/?id',
-            onEnter: function($state, $stateParams, $modal) {
-                $modal.open({
-                    templateUrl: '/angular-app/partials/device-favorites-modal.html',
-                    controller: 'DevFavoritesModalCtrl'
-                }).result.then(function(result) {
-                    if (result) {
-                        return $state.go('device.view.detail', {
-                            id: $stateParams['id']
-                        });
-                    }
-                }, function() {
-                    return $state.go('device.view.detail', {
-                        id: $stateParams['id']
-                    });
-                });
-            },
-            data: {
-                groups: [],
-                isModal: true
-            }
-        }).
         state('user', {
             url: '/user',
             templateUrl: '/angular-app/partials/user.html',
@@ -332,7 +398,7 @@
             }
         }).
         state('user.edit', {
-            url: '/edit/:username',
+            url: '/edit/?username?isEdit',
             onEnter: function($state, $stateParams, $modal, User, MortarUser) {
                 $modal.open({
                     templateUrl: 'angular-app/partials/addEditUserModal.html',
@@ -340,8 +406,7 @@
                     resolve: {
                         username: function() {
                             return $stateParams.username;
-                        },
-                        User: User
+                        }
                     }
                 }).result.then(function(result) {
                     if (User.isAdmin()) {
@@ -392,7 +457,7 @@
             }
         }).
         state('user.init', {
-            url: '/init/:username',
+            url: '/init/?username',
             onEnter: function($state, $stateParams, $modal, User, MortarUser) {
                 $modal.open({
                     templateUrl: 'angular-app/partials/initModal.html',
@@ -415,7 +480,7 @@
             }
         }).
         state('recovery_password', {
-            url: '/recovery_password/:user/:token',
+            url: '/recovery_password/?user/?token',
             templateUrl: '/angular-app/partials/user-reset-password.html',
             controller: 'ResetUserPasswordController',
             data: {
@@ -462,7 +527,7 @@
             }
         }).
         state('device.editFolder', {
-            url: '/edit/:folders',
+            url: '/edit/?folders',
             onEnter: function($state, $stateParams, $modal) {
                 $modal.open({
                     templateUrl: 'angular-app/partials/FolderModal.html',
@@ -508,111 +573,76 @@
                 Alert.close();
             }
             if (!User.loggedIn) {
-                var sessionUser = JSON.parse($window.sessionStorage.getItem("User"));
-                if (!$rootScope.triedSession && typeof sessionUser != 'undefined' && sessionUser != null) {
+                $rootScope.sessionUser = JSON.parse($window.sessionStorage.getItem("User"));
+                if (!$rootScope.triedSession && typeof $rootScope.sessionUser !=
+                    'undefined' && $rootScope.sessionUser != null) {
                     $rootScope.triedSession = true;
                     $rootScope.tryingSession = true;
-                    var sessionState = JSON.parse($window.sessionStorage.getItem("State"));
-                    console.log("sessionState");
-                    console.log(sessionState);
                     var loginFunction = function(result) {
-                    User.login(sessionUser.username,sessionUser.password).then(function(result){
-                      var userInfoPost = User.getVcard();
-                      Browser.children = [User.rootFolder, User.favoritesFolder];
-                      userInfoPost.then(function(success) {
-                          Browser.init().then(function(result) {
-                            console.log("Browser Initialized");
-                            console.log(sessionState);
-                              $rootScope.tryingSession = false;
-                              if (typeof sessionState != 'undefined' && sessionState.state != '') {
-                                  $state.go(sessionState.state,
-                                    sessionState.params);
-                              } else {
-                                  $state.go('device.list', {
-                                      folder: User.rootFolder
+                        if (typeof $rootScope.sessionUser == 'undefined') {
+                            $rootScope.tryingSession = false;
+                            return;
+                        }
+                        var sessionUser = JSON.parse($window.sessionStorage.getItem("User"));
+                        User.login(sessionUser.username, sessionUser.password).then(function(result) {
+                                var userInfoPost = User.getVcard();
+                                var sessionState = JSON.parse($window.sessionStorage.getItem("State"));
+                                Browser.children = [User.rootFolder, User.favoritesFolder];
+                                userInfoPost.then(function(success) {
+                                    Browser.init().then(function(result) {
+                                        console.log("Browser Initialized");
+                                        console.log(sessionState);
+                                        $rootScope.tryingSession = false;
+                                        if (typeof sessionState != 'undefined' && sessionState.state != '') {
+                                            $state.go(sessionState.state,
+                                                sessionState.params);
+                                        } else {
+                                            $state.go('device.list', {
+                                                folder: User.rootFolder
+                                            });
+                                        }
+                                    }, function(result) {
+                                        $rootScope.tryingSession = false;
+                                        console.log("Browser could not initialize");
                                     });
-                              }
-                          }, function(result) {
-                                      console.log("Browser could not initialize");
-                                      $state.go('login');
-                                    });
-                      }, function(response) {
-                          var modalInstance = $modal.open({
-                              templateUrl: 'angular-app/partials/initModal.html',
-                              controller: 'UserInitCtrl',
-                              resolve: {
-                                  username: function() {
-                                      return sessionUser.username;
-                                  },
-                                  password: function() {
-                                      return sessionUser.password;
-                                  }
-                              }
-                          });
-                          modalInstance.result.then(function(error) { //success
-                              if (error) {
-                                  Alert.open('danger', 'Vcard information could not be saved.');
-                              } else {
-                                  Browser.children = [User.rootFolder, User.favoritesFolder];
-                                  Browser.init().then(function(success) {
-                                      if (typeof User.state.name != 'undefined') {
-                                          $state.go(User.state.name, User.state.params);
-                                          return;
-                                      }
-                                      $state.go('device.list', {
-                                          folder: User.favoritesFolder
-                                      });
-                                  });
-                              }
-                          }, function() {
-                              User.loggedIn = false;
-                              Alert.open('danger', 'Vcard request failed.');
-                              $state.go('login');
-                          });
-                    },
-                  function(result){
+                                });
+                            },
+                            function(result) {
+                                event.preventDefault();
+                                angular.copy(next, User.state);
+                                User.state.toParams = toParams;
+                            });
+                    };
                     event.preventDefault();
-                    angular.copy(next,User.state);
-                    User.state.toParams = toParams;
+                    console.log("LoginFunction call");
+                    loginFunction();
                     $state.go('login');
-                  });
-                }, function() {$rootScope.tryingSession = false; $state.go('login');})};
-                event.preventDefault();
-                $state.go('login').then(loginFunction,loginFunction);
-              } else if (!$rootScope.tryingSession && next.name != "login" && next.name != 'recovery_password') {
+                } else if (!$rootScope.tryingSession && next.name != "login" &&
+                  next.name != 'recovery_password' && next.name !=
+                  'login.register') {
+                    $rootScope.triedSession = false;
+                    $rootScope.tryingSession = false;
                     event.preventDefault();
-                    // set user state data to redirect if necessary
-                    angular.copy(next, User.state);
-                    User.state.toParams = toParams;
                     Alert.open('warning', 'You need to be logged in');
                     $state.go('login');
                     return;
                 }
             }
-            // groups that shouldn't be there!
-            var groups = next.data.groups || [];
-            /**
-             * Prevent route change, show alert,
-             * You aint got cleareance!
-             */
-            if (User.loggedIn && groups.indexOf(User.group) != -1) {
-                console.log("you shouldn't be here");
-                console.log(next, event);
-                $state.go(fromState.name);
-                return;
-            }
         });
         $rootScope.$on('$stateChangeSuccess', function(event, to, toParams, from, fromParams) {
             angular.copy(from.name, $rootScope.lastState);
             angular.copy(fromParams, $rootScope.lastParams);
-            console.log(from);
-            if (to.name != '' && to.name != '\/login' && to.name != 'login') {
-              $window.sessionStorage.setItem("State", JSON.stringify({state: to.name,
-                params: toParams}));
-              }
-            else if (from.name != '' && from.name != '\/login' && from.name != 'login') {
-              $window.sessionStorage.setItem("State", JSON.stringify({state: from.name,
-                params: fromParams}));
+            if (to.name != '' && to.name != '\/login' && to.name != 'login' && to.name != 'login.register' ) {
+                $window.sessionStorage.setItem("State", JSON.stringify({
+                    state: to.name,
+                    params: toParams
+                }));
+            } else if (from.name != '' && from.name != '\/login' && from.name != 'login'
+              && from.name != 'login.register') {
+                $window.sessionStorage.setItem("State", JSON.stringify({
+                    state: from.name,
+                    params: fromParams
+                }));
             }
 
         });

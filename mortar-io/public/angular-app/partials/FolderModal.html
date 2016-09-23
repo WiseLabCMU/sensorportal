@@ -1,66 +1,76 @@
 <!DOCTYPE html>
-<div class="modal-header" >
-    <h3 class="modal-title" ng-if="!isUpdate">Add folder</h3>
-    <h3 class="modal-title" ng-if="isUpdate">Edit folder</h3>
+<div class="modal-header">
+    <h3 class="modal-title" ng-if="!isUpdate()">Add folder</h3>
+    <h3 class="modal-title" ng-if="isUpdate()">Edit folder</h3>
 </div>
 <form role="form" ng-submit="submitFolder()" novalidate>
     <div cg-busy="loadFolder"></div>
-    <alert ng-show="cp.error" type="warning" close="cp.error=false">{{cp.errorMessage}}</alert>
+    <alert ng-show="cp.error" type="warning" close="cp.error=false">
+    	{{cp.errorMessage}}
+    </alert>
     <div class="modal-body">
         <div class="form-group">
             <label for="foldername">Folder Name</label>
-            <input class="form-control" type="text" name="foldername"
-              ng-model="folder.name"  id="foldername" required />
+            <input class="form-control" type="text" name="foldername" 
+              ng-model="folder.name" id="foldername" required />
         </div>
-	<div class="form-group">
+        <div class="form-group">
             <label for="foldername">Folder Type</label>
- 	    <input type="radio" ng-model="folder.type" value="device" />Device
-     	    <input type="radio" ng-model="folder.type" value="location" />Location
-     	    <input type="radio" ng-model="folder.type" value="gateway" />Gateway
-     	    <input type="radio" ng-model="folder.type" value="agent" />Agent
-     	    <input type="radio" ng-model="folder.type" value="other" />Other
-	    <br />
+            <input type="radio" ng-model="folder.metaType" value="device"/>Device
+            <input type="radio" ng-model="folder.metaType" value="location"/>Location
+            <input type="radio" ng-model="folder.metaType" value="gateway"/>Gateway
+            <input type="radio" ng-model="folder.metaType" value="agent"/>Agent
+            <input type="radio" ng-model="folder.metaType" value="other"/>Other
+            <br />
         </div>
-	<div class="row" ng-if="!folder.isFavorite">
-        <div class="row" >
-            <div class="col-md-5">
-                <div class="form-group" ng-if="user.isAdmin()" >
-                    <label for="folder_mapUri">Upload Map Image</label>
-                    <input type="file" name="folder.properties['mapUri']" ng-file-select="onFileSelect($files)" accept="image/*" id="folder.properties['mapUri']" />
+        <div class="row" ng-if="!folder.isFavorite">
+            <div class="row">
+                <div class="col-md-5">
+                    <div class="form-group" ng-if="user.isAdmin()">
+                        <label for="folder_mapUri">
+                        	Upload Map Image
+                        </label>
+                        <input type="file" name="folder.properties['mapUri']" 
+                          ng-file-select="onFileSelect($files)" accept="image/*" 
+                          id="folder.properties['mapUri']" />
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group" ng-if="user.isAdmin()">
+                        <div class="form-group">
+                            <label for="folder_mapUri">
+                            	Provide the URL of an image
+                            </label>
+                            <input class="form-control" type="text" id="folder_mapUriUrl" 
+                              name="folder_mapUri" ng-model="folder.mapUriUrl">
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="col-md-6">
-		    <div class="form-group" ng-if="user.isAdmin()">
-                <div class="form-group" >
-                    <label for="folder_mapUri">Provide the URL of an image</label>
-                    <input class="form-control" type="text" id="folder_mapUriUrl" name="folder_mapUri" ng-model="folder.mapUriUrl">
+            <a ng-if="isUpdate() && folder.properties['mapUri']" 
+              ng-href="{{folder.properteis['mapUri']}}" class="img-preview" 
+              target="_blank">
+                <img class="img-rounded" ng-src="{{folder.properties['mapUri']}}"/>
+            </a>
+            <div ng-if="!isRootOrFavorite" ng-cloak>
+                <h3>Select folder location:</h3>
+                <span ng-if="isUpdate">Current :{{folder.parent.name}}</span>
+                <div data-tree-view="true" data-tree-id="modalBrowser" 
+                  data-tree-show-search="false" data-node-callback="selectDevice" 
+                  data-collection-callback="selectFolder" data-hide-device="true" 
+                  data-hide-root="!showRoot" data-selected-folder="selectedFolder" 
+                  data-expand-all="true">
                 </div>
-		    </div>
             </div>
         </div>
-        <a ng-if="isUpdate && folder.properties['mapUri']" ng-href="{{folder.properteis['mapUri']}}" class="img-preview" target="_blank">
-          <img class="img-rounded" ng-src="{{folder.properties['mapUri']}}"/>
-        </a>
-        <div ng-if="!isRootOrFavorite" ng-cloak>
-            <h3>Select folder location:</h3>
-            <span ng-if="isUpdate">Current :{{folder.parent.name}}</span>
-<div
-                data-tree-view="true"
-                data-tree-id="modalBrowser"
-                data-tree-show-search="false"
-                data-node-callback="selectDevice"
-                data-collection-callback="selectFolder"
-                data-hide-device="true"
-                data-hide-root="!showRoot"
-                data-selected-folder="selectedFolder"
-                data-expand-all="true">
-            </div>
+        <div class="modal-footer">
+            <div cg-busy="modalPromise"></div>
+            <input type="button" class="link-button" ng-click="cancel()" value="Cancel"/>
+            <button type="submit" class="btn blue-btn" ng-show="isUpdate" 
+              ng-disabled="form.$invalid || isFolderNotSelect()">Update
+            </button>
+            <button type="submit" class="btn blue-btn" ng-show="!isUpdate" 
+              ng-disabled="form.$invalid || isFolderNotSelect()">Create
+            </button>
         </div>
-    </div>
-    <div class="modal-footer">
-        <div cg-busy="modalPromise"></div>
-        <input type="button" class="link-button" ng-click="cancel()" value="Cancel"/>
-        <button type="submit" class="btn blue-btn" ng-show="isUpdate" ng-disabled="form.$invalid || isFolderNotSelect()">Update</button>
-        <button type="submit" class="btn blue-btn" ng-show="!isUpdate" ng-disabled="form.$invalid || isFolderNotSelect()">Create</button>
-    </div>
 </form>

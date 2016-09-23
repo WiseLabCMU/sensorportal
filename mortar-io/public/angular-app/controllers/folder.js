@@ -18,7 +18,6 @@
         //Initial object of the controller
         $scope.devBrowser = {};
 
-        $scope.selectedFolder = Browser.references[User.favoritesFolder];
         /**
          * selectFolder callback function to call inside the browser
          * @param  Folder objFolder object selected in the browser
@@ -27,12 +26,8 @@
             if (typeof objFolder == 'undefined' || typeof objFolder.id == 'undefined') {
                 return;
             }
-            $scope.selectedFolder = objFolder;
-            Device.constructDevice(objFolder.id, true).then(
-              function(device) {
-                $state.go('device.list', {
-                    folder: objFolder.id
-                });
+            $state.go('device.list', {
+                folder: objFolder.id
             });
         };
 
@@ -141,14 +136,38 @@
             $self.deferred = $q.defer();
             $scope.selectedParent = $scope.parents[0];
             $scope.selectedParentId = $scope.selectedParent.id;
-            Device.constructDevice($scope.selectedParentId, true, false).then(
+            Device.constructDevice($scope.selectedParentId, true, true).then(
                 function(parentDev) {
-                    Device.constructDevice($scope.selectedFolder.id, true).then(
+                    Device.constructDevice($scope.selectedFolder.id, true, true).then(
                         function(childDev) {
-                            childDev.removeReferences([parentDev]);
-                            parentDev.removeReferences([childDev]);
-                            $self.deferred.resolve(true);
-                            $modalInstance.close([$scope.selectedParent, childDev.id]);
+                            var promises = [];
+                            var parentReference = {
+                                type: parentDev.metaType,
+                                relation: 'parent',
+                                node: parentDev.id,
+                                id: parentDev.id,
+                                name: parentDev.name,
+                                label: parentDev.name,
+                                metaType: parentDev.metaType,
+                            };
+                            var childReference = {
+                                type: childDev.metaType,
+                                relation: 'child',
+                                node: childDev.id,
+                                id: childDev.id,
+                                name: childDev.name,
+                                label: childDev.name,
+                                metaType: childDev.metaType,
+                            };
+                            promises.push(childDev.removeReferences([parentReference]));
+                            promises.push(parentDev.removeReferences([childReference]));
+                            $q.all(promises).then(function(result) {
+                                $self.deferred.resolve(true);
+                                $modalInstance.close([$scope.selectedParent, childDev.id]);
+                            }, function(result) {
+                                $self.deferred.resolve(true);
+                                $modalInstance.close([$scope.selectedParent, childDev.id]);
+                            });
                         },
                         function(error) {
                             console.log(error);
@@ -201,7 +220,8 @@
 
         /**
          * isFolderNotSelect validate if there is a folder select int browser
-         * @return Boolean return true if there is not a folder select not apply if is root o favorite
+         * @return Boolean return true if there is not a folder select not apply if 
+         * is root o favorite
          */
         $scope.isFolderNotSelect = function() {
             return typeof $scope.selectedFolder == 'undefined';
@@ -235,9 +255,8 @@
      * @return {[type]}                [description]
      */
     app.controller('FolderModalCtrl', function($rootScope, $scope, $q,
-        $modalInstance, $state, $stateParams, $upload, $window,  Alert,
-        Favorite, Browser, User, Device, uuid4) {
-        $scope.favorite = Favorite;
+        $modalInstance, $state, $stateParams, $upload, $window, Alert,
+        Browser, User, Device, uuid4) {
         $scope.modalBrowser = {};
         Browser.children = [User.rootFolder, User.favoritesFolder];
         $scope.cp = {
@@ -245,31 +264,21 @@
             error: false,
             errorMessage: ''
         };
-        $scope.folder = {
-            id: uuid4.generate(),
-            name: '',
-            mapUri: '',
-            mapUriUrl: '',
-            type: 'location'
-        };
-        $scope.showRoot = (User.isAdmin()) ? true : false;
-        $scope.showRoot = true;
-        //$scope.isFromModal = fromModal;
+        
+        $scope.showRoot = User.isAdmin();
         $scope.isRootOrFavorite = false;
-        $scope.selectedFolder = undefined;
-
+		$scope.isUpdate = function() { 
+			return $stateParams.isUpdate;
+		}
         if (User.isPublisherOrOwner(User.rootFolder)) {
             Browser.children = [User.rootFolder, User.favoritesFolder];
         } else {
             Browser.children = [User.favoritesFolder];
         }
-        $scope.isUpdate = angular.isDefined($stateParams.folders) && $stateParams['folders'] != '';
-        if ($scope.isUpdate) {
-            $scope.folder = Device.objFolder;
-            $scope.loadFolder = Device.constructDevice($stateParams['folders'],
+        if ($scope.isUpdate()) {
+            $scope.loadFolder = Device.constructDevice($stateParams['folder'],
                 true, true);
             $scope.loadFolder.then(function(device) {
-                Device.objFolder = device;
                 $scope.folder = device;
                 $scope.isRootOrFavorite = ($scope.folder.id == User.favoritesFolder) ||
                     ($scope.folder.id == 'root');
@@ -281,9 +290,16 @@
                 $scope.cp.errorMessage = error;
                 Alert.open(result);
                 modal.cancel([]);
-                //$state.go($rootScope.lastState, $rootscope.lastParams);
             });
 
+        } else {
+       		$scope.folder = {
+           	 id: uuid4.generate(),
+       	     name: '',
+       	     mapUri: '',
+       	     mapUriUrl: '',
+       	     type: 'location'
+        	};
         }
 
         /**
@@ -298,30 +314,34 @@
          * Submit the necesarry data to update or create a folder
          */
         $scope.submitFolder = function() {
-            if ($scope.isUpdate) {
-                $scope.folder.publishMeta();
-                if (typeof $scope.selectedFolder == 'defined') {
-                    $scope.addReferences([{
+            if ($scope.isUpdate()) {
+                $scope.folder.saveMeta();
+                if (typeof $scope.selectedFolder != 'undefined') {
+                    console.log("Selected Folder");
+                    console.log($scope.selectedFolder);
+                    $scope.folder.addReferences([{
                         id: $scope.selectedFolder.id,
+                        node: $scope.selectedFolder.id,
                         name: $scope.selectedFolder.name,
                         type: 'parent',
-                        metaType: selectedFolder.metaType
+                        metaType: $scope.selectedFolder.metaType
                     }]);
                     $scope.selectedFolder.addReferences(
-                        [{
+                      [{
                             id: $scope.folder.id,
+                            node: $scope.folder.id,
                             name: $scope.folder.name,
                             type: 'child',
-                            metaType: folder.metaType
-                        }]);
+                            metaType: $scope.folder.metaType
+                      }]);
                 }
-                $modalInstance.close([selectedFolder.id, tmpFolder.id]);
+                $modalInstance.close([]);
             } else {
                 if (typeof $scope.selectedFolder.id == 'undefined') {
                     $scope.selectedFolder.id = null;
                 }
                 var tmpFolder = Device.constructDevice($scope.folder.id, false);
-                tmpFolder.type = $scope.folder.type;
+                tmpFolder.metaType = $scope.folder.type;
                 tmpFolder.mapUri = $scope.folder.mapUri;
                 tmpFolder.mapUriUrl = $scope.folder.mapUriUrl;
                 tmpFolder.name = $scope.folder.name;
@@ -369,7 +389,7 @@
          * @param  Folder folder object selected in the browser
          */
         $scope.selectFolder = function(objFolder) {
-            $scope.selectedFolder = objFolder;
+            //$scope.selectedFolder = objFolder;
             Device.constructDevice(objFolder.id, true).then(function(folder) {
                 $scope.selectedFolder = folder;
             });
@@ -379,11 +399,12 @@
          * @return Boolean return true if there is not a folder select not apply if is root o favorite
          */
         $scope.isFolderNotSelect = function() {
-                return typeof $scope.selectedFolder == 'undefined';
-            }
-            /**
-             * Close the create folder modal
-             */
+            return typeof $scope.selectedFolder == 'undefined';
+        }
+        
+        /**
+         * Close the create folder modal
+         */
         $scope.cancel = function() {
             $modalInstance.dismiss();
         };
@@ -413,50 +434,21 @@
      * @param  service Browser
      */
     app.controller('FolderViewCtrl', function($rootScope, $scope, $state,
-        $stateParams, $window, $route, Alert, User, Device, Browser) {
+        $stateParams, $window, $route, Alert, User, Device, Browser, $q) {
         $scope.devices = [];
-        $scope.selectedFolder = {id: $stateParams.folder};
-        if (typeof Browser.references[$stateParams.folder] != 'undefined') {
-            $scope.selectedFolder = Browser.references[$stateParams.folder];
-        }
+
         /**
          * initFolder get the current Folder
          * @param  string strFolderId Folder ID
          */
-        /*$scope.$watch(function() {
-                if (typeof Browser.references[$stateParams.folder] ==
-                    'undefined') {
-                    return {};
-                }
-                return Browser.references[$stateParams.folder];
-            },
-            function(oldValue, newValue) {
-                if (typeof newValue == 'undefined' || typeof newValue.references
-                  == 'undefined') {
-                    return;
-                }
-                $scope.selectedFolder = Browser.references[$stateParams.folder];
-                $scope.devices = {};
-                for (cIndex in $scope.selectedFolder.references.children) {
-                    var child = $scope.selectedFolder.references.children[cIndex];
-                    $scope.devices[child.id] = child;
-                    console.log(child.name);
-                    console.log(child.id + "hlel");
-                    Device.constructDevice(child.id, true).then(function(childdevice) {
-                        $scope.devices[childdevice.id] = childdevice;
-                    }, function(error) {
-                        console.log(error);
-                        console.log(child);
-                    });
-                }
-            });*/
         $scope.initFolder = function(strFolderId) {
+            var deferred = $q.defer();
             // looks a lot like Browser code, use References
             Browser.loadChildren(strFolderId).then(function(result) {
-                $scope.selectedFolder = Browser.references[strFolderId];
-                $scope.devices = $scope.selectedFolder.references.children;
-                for (cIndex in $scope.selectedFolder.references.children) {
-                    var child = $scope.selectedFolder.references.children[cIndex];
+                $scope.folder = Browser.references[$stateParams.folder];
+                $scope.devices = $scope.folder.references.children;
+                for (cIndex in $scope.folder.references.children) {
+                    var child = $scope.folder.references.children[cIndex];
                     $scope.devices[child.id] = (child);
                     Device.constructDevice(child.id, true).then(function(childdevice) {
                         $scope.devices[childdevice.id] = childdevice;
@@ -464,20 +456,22 @@
                         console.log(error);
                     });
                 }
-            })
+                deferred.resolve(true);
+            }, function(reject) {
+                deferred.resolve(reject);
+            });
+            return deferred.promise;
         };
 
 
         if (typeof $stateParams.folder != 'undefined') {
-            $scope.selctedFolder = {id: $stateParams.folder}
-            $scope.selectFolder(Browser.references[$stateParams.folder]);
             $scope.initFolder($stateParams.folder);
         } else {
             Alert.open('warning', "Folder id must be specified.");
             if (typeof $rootScope.lastState != 'undefined') {
-              $state.go($rootScope.lastState, $rootScope.lastParams);
+                $state.go($rootScope.lastState, $rootScope.lastParams);
             } else {
-              $state.go('device.list', User.rootFolder);
+                $state.go('device.list', User.rootFolder);
             }
         }
 
@@ -487,62 +481,69 @@
          * @return {Boolean}          [description]
          */
         $scope.isOwner = function(deviceId) {
-            return User.isOwner(deviceId);
+            return User.isOwner({
+                id: deviceId
+            });
         };
         $scope.canEdit = function(deviceId) {
-            return User.isOwner( deviceId) || User.isPublisher(deviceId);
+            return User.isOwner({
+                id: deviceId
+            }) || User.isPublisher({
+                id: deviceId
+            });
         };
         $scope.reload = function() {
-            $scope.initFolder($stateParams.folder);
+            $scope.initFolder({
+                id: $stateParams.folder
+            });
         };
         $scope.hasMap = function() {
-          return (typeof $scope.selectedFolder != 'undefined' &&
-            typeof $scope.selectedFolder.properties != 'undefined' &&
-            typeof $scope.selectedFolder.properties.mapUri != 'undefined');
-        }
-        /**
-         * [isPublisher description]
-         * @param  {[type]}  deviceId [description]
-         * @return {Boolean}          [description]
-         */
+                return (typeof $scope.folder != 'undefined' &&
+                    typeof $scope.folder.properties != 'undefined' &&
+                    typeof $scope.folder.properties.mapUri != 'undefined');
+            }
+            /**
+             * [isPublisher description]
+             * @param  {[type]}  deviceId [description]
+             * @return {Boolean}          [description]
+             */
         $scope.isPublisher = function(deviceId) {
-            return User.isPublisher(deviceId);
+            return User.isPublisher({
+                id: deviceId
+            });
         }
 
         /**
          * deleteFolder remove a folder if have parent delete the references
          */
         $scope.deleteFolder = function() {
-            var confirm = $window.confirm('Are you sure you want to delete ' +
-                $scope.selectedFolder.name + ' ?');
-            if (confirm) {
-                $scope.selectedFolder.deleteEvent().then(
-                    function(device) {
-                        device.deleteDevice();
-                        Browser.loadChildren($scope.parentFolder.id);
-                        $state.go('device.list', {
-                            folder: $scope.parentFolder.id
-                        });
-                    });
-            }
+              var parent;
+              if (typeof $scope.folder.parents != 'undefined' &&
+                $scope.folder.parents.length > 0){
+                  parent = $scope.folder.parents[0].id;
+              } else {
+                  parent = User.favoritesFolder;
+              }
+              $state.go('device.list.delete', {id:$stateParams.folder,
+                parent:parent});
         };
 
 
     });
-
-app.controller('FolderFavoritesModalCtrl', function($rootScope, $scope, $modal,
-      $modalInstance, $state, $stateParams, User, Alert, Device, Browser, $q,
-      $timeout) {
+    app.controller('FolderFavoritesModalCtrl', function($rootScope, $scope, $modal,
+        $modalInstance, $state, $stateParams, User, Alert, Device, Browser, $q,
+        $timeout) {
         $scope.devBrowserFavorites = {};
         Browser.children = [];
         $scope.newFavorites = [];
         $scope.favoritesToRemove = [];
         $scope.isAlreadySelected = false;
         $scope.errors = [];
+        $scope.isUpdate = $stateParams.isUpdate;
         Device.constructDevice(User.favoritesFolder, true).then(function(device) {
-           $scope.favorite = device;
-           Browser.children = [device.id];
-           $scope.selectedFolder = device;
+            $scope.favorite = device;
+            Browser.children = [device.id];
+            $scope.selectedFolder = device;
         }, function(error) {
             $modalInstnace.close();
         });
@@ -571,7 +572,7 @@ app.controller('FolderFavoritesModalCtrl', function($rootScope, $scope, $modal,
             });
             modalInstance.result.then(function(ids) {
                 if (idIndex in ids) {
-                  Browser.loadChildren(ids[idIndex]);
+                    Browser.loadChildren(ids[idIndex]);
                 }
             });
         };
@@ -589,34 +590,35 @@ app.controller('FolderFavoritesModalCtrl', function($rootScope, $scope, $modal,
                 };
                 return -1;
         }
+        
         /**
          * [addFavorite description]
          * @param {[type]} $favorite [description]
          */
         $scope.addFavorite = function($favorite) {
-                var favorite = {
-                    id: $favorite.id,
-                    name: $favorite.name
-                };
-                var indexNewFavorites = $scope.myIndexOf($scope.newFavorites, favorite);
-                var indexDeletedFavorites = $scope.myIndexOf($scope.favoritesToRemove, favorite);
-                if (indexDeletedFavorites !== -1) {
-                    $scope.favoritesToRemove.splice(indexDeletedFavorites, 1);
-                    return;
-                }
-                if (indexNewFavorites !== -1) {
-                    $scope.isAlreadySelected = true;
-                    return;
-                }
-                $scope.newFavorites.push(favorite);
-                $scope.isAlreadySelected = false;
-         }
+            var favorite = {
+                id: $favorite.id,
+                name: $favorite.name
+            };
+            var indexNewFavorites = $scope.myIndexOf($scope.newFavorites, favorite);
+            var indexDeletedFavorites = $scope.myIndexOf($scope.favoritesToRemove, favorite);
+            if (indexDeletedFavorites !== -1) {
+                $scope.favoritesToRemove.splice(indexDeletedFavorites, 1);
+                return;
+            }
+            if (indexNewFavorites !== -1) {
+                $scope.isAlreadySelected = true;
+                return;
+            }
+            $scope.newFavorites.push(favorite);
+            $scope.isAlreadySelected = false;
+        }
 
-         /**
-          * [deleteFavorite description]
-          * @param  {[type]} $favorite [description]
-          * @return {[type]}           [description]
-          */
+        /**
+         * [deleteFavorite description]
+         * @param  {[type]} $favorite [description]
+         * @return {[type]}           [description]
+         */
         $scope.deleteFavorite = function($favorite) {
             var indexNewFavorites = $scope.myIndexOf($scope.newFavorites, $favorite);
             if (indexNewFavorites !== -1) {
@@ -635,16 +637,20 @@ app.controller('FolderFavoritesModalCtrl', function($rootScope, $scope, $modal,
                     var folderid = $scope.newFavorites[favorite].id;
                     var tmpDeferred = $q.defer();
                     $scope.allPromise.push(tmpDeferred.promise);
-                        Device.constructDevice(folderid, true).then(function(tmpFolder) {
-                          tmpFolder.addReferences(
-                            [{  type: 'child',
+                    Device.constructDevice(folderid, true).then(function(tmpFolder) {
+                        tmpFolder.addReferences(
+                            [{
+                                type: 'child',
                                 id: $scope.device.id,
+                                node: $scope.device.id,
                                 metaType: 'device',
                                 name: $scope.device.name
                             }]).then(function(result) {
-                              tmpDeferred.resolve(result);
-                            }, function(result) { tmpDeferred.reject(result);});
-                          });
+                            tmpDeferred.resolve(result);
+                        }, function(result) {
+                            tmpDeferred.reject(result);
+                        });
+                    });
                 }
                 $q.all($scope.allPromise).then(function(response) {
                     $scope.errors = [];
@@ -686,6 +692,5 @@ app.controller('FolderFavoritesModalCtrl', function($rootScope, $scope, $modal,
     });
 
     app.controller('FolderEditCtrl', function($rootScope, $scope, $state,
-        $stateParams, $window, $route, Alert, User, Device, Browser) {
-        });
+        $stateParams, $window, $route, Alert, User, Device, Browser) {});
 })();
