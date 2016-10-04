@@ -2,6 +2,7 @@
   "name": "mortar-io",
   "version": "0.0.1",
   "private": true,
+  "directory": "public/resources/", 
   "dependencies": {
     "jquery": "1.11.1",
     "angular-bootstrap": "0.11.0",
