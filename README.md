@@ -9,6 +9,7 @@ The  server that hosts the  sensor portal is NGINX and js packages are managed b
 What follows is how to install these two components.
 
 ### NGINX
+
 First install 
 nginx from source or a package manager. More installation information is found
 at https://www.nginx.com. 
@@ -26,7 +27,6 @@ server {
     location / {
 	      try_files $uri $uri/ index.html;
     }
-    \# pass through proxy  rpc commands.
     location /RPC2 {
         proxy_pass [xmpp server]:4560/RPC2;
     }
@@ -54,7 +54,7 @@ from npmjs.com or your prefered package manager. More information about bower ca
 
 To install bower and  
 
-'''bash
+'''
  npm install -g bower
  cd [path to repo]/mortar-io/
  bower install 
