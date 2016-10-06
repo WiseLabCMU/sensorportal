@@ -18,31 +18,47 @@ Once installed add the following server entry to the nginx configuration.
 
 '''
 server {
+
     listen 80;
+
     root [path to public];
+    
     index index.html;
+    
     server_name localhost;
+    
     charset utf-8;
 
     location / {
-	      try_files $uri $uri/ index.html;
+
+        try_files $uri $uri/ index.html;
+    
     }
+    
     location /RPC2 {
+    
         proxy_pass [xmpp server]:4560/RPC2;
+    
     }
 
     location = /favicon.ico { access_log off; log_not_found off; }
+    
     location = /robots.txt  { access_log off; log_not_found off; }
 
     access_log [path to log]/mortar-access.log;
+    
     error_log  [path to log]/mortar-io-error.log error;
 
     error_page 404 index.html;
+    
     sendfile off;
 
     location ~ /\.ht/ {
+    
         deny all;
+    
     }
+    
 }
 '''
 
