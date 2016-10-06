@@ -153,10 +153,10 @@
                 isModal: true
             }
         }).
-        state('device.map', {
-            url: '/map/?folder',
+        state('device.list.map', {
+		url: '/map/:folder',
             templateUrl: '/components/folder/folderMap/folderMap.html',
-            controller: 'MapCtrl',
+            controller: 'FolderMapCtrl',
             data: {
                 groups: [],
                 isModal: false

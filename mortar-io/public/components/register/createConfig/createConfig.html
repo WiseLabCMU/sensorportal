@@ -12,11 +12,11 @@
     <th>Value</th>
   </thead>
   <tbody>
-	  <tr ng-repeat="config in template.config">
-		  <td>{{config.var}}</td>
-		  <td>{{config.type}}</td>
-		  <td>{{config.label}}</td>
-		  <td><input type="string" ng-model="config.value"></td>
+	  <tr ng-repeat="c in config">
+		  <td>{{c.var}}</td>
+		  <td>{{c.type}}</td>
+		  <td>{{c.label}}</td>
+		  <td><input type="string" ng-model="c.value"></td>
 	  </tr>
 	</table>
 	</span>

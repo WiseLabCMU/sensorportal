@@ -1,11 +1,11 @@
 (function() {
     var UPDATE_TRANSDUCER_INTERVAL = 20000;
-    var app = angular.module('create-edit-controller', ['ui.router', 'device-services',
+    var app = angular.module('create-edit-controller', ['ui.router', 'mortar-services',
         'cgBusy', 'ui.bootstrap', 'alert-handler', 'angular-centered'
     ]);
        app.controller('CreateEditCtrl', function($scope, $state,
         $stateParams, $http, Device, Alert) {
-	$scope.templateId = $stateParams.templateId;
+	$scope.templateId = $stateParams.template;
 	$scope.deviceId = $stateParams.deviceId;
 	$scope.type = $stateParams.type;
         Device.constructDevice($scope.templateId, true).then(
