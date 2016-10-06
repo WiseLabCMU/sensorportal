@@ -1,0 +1,20 @@
+<centered><span><div class="header">
+           <button type="submit" class="link-button"
+     	      ng-click="continueConfig()" value="Continue"
+     	      ng-disabled="deviceIsSelected()">Continue
+           </button>
+</div>
+<span>
+  <strong>UUID (optional): </strong> <br>
+  <input type="text" ng-model="$parent.uuid" name="uuid"/>
+</span>
+    <div class="templates">
+        <label>Template browser</label>
+        <div class="templateList">
+            <div data-tree-view="true" data-tree-id="templateBrowser" data-tree-show-search="false" data-collection-callback="selectFolder" data-node-callback="selectDevice" data-selected-folder="selectedFolder" data-hide-root="true" data-expand-all="false">
+
+            </div>
+
+        </div>
+        </span>
+</centered>

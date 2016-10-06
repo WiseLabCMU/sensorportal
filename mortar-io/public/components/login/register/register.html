@@ -1,0 +1,33 @@
+<div class="modal-header">
+    <h4 class="modal-title">
+    What domain would you like to register under?
+  </h4>
+</div>
+<form role="form" ng-submit="submit()">
+    </div>
+    <div cg-busy="loadForm"></div>
+    <div class="form-group">
+        Domain <input type="url" ng-model="domain"></input>
+    </div>
+    <div class="modal-header" ngif="formLoaded">
+        <table class="table">
+            <thead>
+                <th>Field</th>
+                <th>Value</th>
+            </thead>
+            <tbody>
+                <tr ng-repeat="(field,value) in connection.register.fields" class="device-row">
+                    <td class="register-field">
+                        {{field}}
+                    </td>
+                    <td class="register-value">
+                        <input type="text" ng-model="connection.register.fields[field]"></input>
+                    </td>
+            </tbody>
+        </table>
+    </div>
+    <div class="modal-footer">
+        <button class="btn link-button" ng-click="cancel()" value="Cancel">Cancel</button>
+        <button ng-click="submit()" class="btn blue-btn" ng-disabled="!allFieldsFilled()">Register</button>
+    </div>
+</form>

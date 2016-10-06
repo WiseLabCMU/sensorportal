@@ -1,0 +1,23 @@
+<div class="config">
+    <div class="header">
+        <button type="submit" class="link-button" ng-click="submitConfig()" value="Continue">Continue
+	      </button>
+    </div>
+    <label>Event Node Configuration </label>
+    <span><table class="table">
+  <thead>
+    <th>Var</th>
+    <th>Config Type</th>
+    <th>Label</th>
+    <th>Value</th>
+  </thead>
+  <tbody>
+	  <tr ng-repeat="c in config">
+		  <td>{{c.var}}</td>
+		  <td>{{c.type}}</td>
+		  <td>{{c.label}}</td>
+		  <td><input type="string" ng-model="c.value"></td>
+	  </tr>
+	</table>
+	</span>
+</div>
