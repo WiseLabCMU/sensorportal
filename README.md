@@ -5,8 +5,11 @@ over the BOSH protocol.
 
 ## Installation
 
+The  server that hosts the  sensor portal is NGINX and js packages are managed by bower. 
+What follows is how to install these two components.
+
 ### NGINX
-An nginx server hosts the website and is very easy to setup. First install 
+First install 
 nginx from source or a package manager. More installation information is found
 at https://www.nginx.com. 
 
