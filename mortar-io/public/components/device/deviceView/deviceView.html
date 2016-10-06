@@ -1,0 +1,52 @@
+<div class="device-view">
+    <h1 class="pull-left">{{device.name}}</h1>
+    <div class="pull-right device-actions">
+        <a ui-sref="device.view.edit({id:device.id})" class="btn gray-btn" 
+          ng-if="isOwner(device.id)">
+            <i class="fa fa-pencil-square-o"></i>Edit
+        </a>
+        <a class="btn gray-btn" ng-click="reload()">
+            <i class="fa fa-refresh"></i>Refresh
+        </a>
+        <a ui-sref="device.view.favorites({id:device.id})" class="btn gray-btn"
+        	ng-if="!isFavorite()">
+            <i class="fa fa-thumb-tack"></i>Add to Favorites
+        </a>
+        <a ui-sref="device.view.permissions({id:device.id})" class="btn gray-btn" 
+          ng-if="isOwner(device.id)">
+            <i class="fa fa-cog"></i>Manage Permissions
+        </a>
+        <button ng-if="subscrbValidator.isSubscribed" 
+          class="btn gray-btn" ng-click="!isSubscribed()">
+	    	<i class="fa fa-sign-in"></i>Subscribe
+	    </button>
+        <button ng-if="subscrbValidator.isUnsubscribed" 
+          class="btn gray-btn" ng-click="isSubscribed()">
+	    	<i class="fa fa-sign-out"></i>Unsubscribe
+	    </button>
+        <button ng-if="isOwner(device.id)" class="btn gray-btn" ng-click="deleteDevice()">
+	    	<i class="fa fa-trash"></i>
+	    	Delete
+	    </button>
+    </div>
+    <div class="clearfix"></div>
+    <ul class="nav nav-tabs" role="tablist">
+        <li ui-sref-active="active">
+        	<a href="#" ui-sref="device.view.detail">Meta</a>
+        </li>
+        <li ui-sref-active="active" ng-if="device.hasTransducers()">
+        	<a href="#" ui-sref="device.view.transducers">Transducers</a>
+        </li>
+        <li ui-sref-active="active" ng-if="device.storage && device.storage.length > 0">
+        	<a href="#" ui-sref="device.view.timeseries">Time Series</a>
+        </li>
+        <li ui-sref-active="active" ng-if="device.canActuate">
+        	<a href="#" ui-sref="device.view.functions">Control</a>
+        </li>
+        <li ng-if="parent.properties && parent.properties.mapUri" ui-sref-active="active">
+        	<a href="#" ui-sref="device.view.map">Map</a>
+        </li>
+    </ul>
+    <div cg-busy="promise"></div>
+    <div ui-view></div>
+</div>

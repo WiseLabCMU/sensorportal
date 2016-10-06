@@ -1,0 +1,115 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<html>
+
+<body>
+    <div class="modal-header">
+        <h3 class="modal-title">Manage permissions</h3>
+    </div>
+
+    <div class="modal-body" align="left">
+        <h5><strong>{{node.metaType}}: {{node.name}}  </strong><h5>
+    <div class="row">
+      <div class="form-group col-md-6" ng-init="loadUsers()">
+        <input type="text" name="username" ng-model="$parent.$parent.username"
+        typeahead-on-select="addUser(username,'publisher')"
+        placeholder="JID of user" ng-keyup=
+        "$event.keyCode == 13 ? addUser(username, $parent.$parent.permissionsType) : null">
+        <p ng-show="isAlreadySelected">User already selected</p>
+        <br>
+      </div>
+      <br>
+      <br>
+      <div class="form-group" align="left"> <p>
+        <h5><label for="permissionType">Permission Type</label></h5>
+        <input type="radio" ng-model="$parent.$parent.permissionsType" value="publisher"> Publisher </input>
+        <input type="radio" ng-model="$parent.$parent.permissionsType" value="owner"> Owner </input>
+        <input type="radio" ng-model="$parent.$parent.permissionsType" value="blacklist"> Outcast </input>
+        <input type="radio" ng-model="$parent.$parent.permissionsType" value="none"> None </input>
+        <input type="radio" ng-model="$parent.$parent.permissionsType" value="publish-only"> Publish Only </input>
+        </p>
+    </div>
+
+    <div class="form-group" align="left">
+        <h5><label for="act">Actuation or data node</label></h5>
+        <p><input type="radio" ng-model="$parent.$parent.act" value="actuation"> Actuation </input>
+            <input type="radio" ng-model="$parent.$parent.act" value="data"> Data </input>
+        </p>
+    </div>
+    <h5><label for="">Access Control Lists</label></h5>
+    <div class="col-md-6">
+        <label>Give publish access to :</label>
+        <table class="table" ng-show="showUsers">
+            <tr ng-repeat="user in node.affiliations['publisher']">
+                <td>{{user}}</td>
+                <td>
+                    <a href="" ng-click="removeUser(user,'publisher')" 
+                      title="Remove from list" class="close-btn">
+                      </a>
+                </td>
+            </tr>
+            <tr ng-repeat="user in $parent.$parent.usersToAdd['publisher']">
+                <td>{{user}}</td>
+                <td>
+                    <a href="" ng-click="removeUser(user,'publisher')" 
+                      title="Remove from list" class="close-btn">
+                    </a>
+                </td>
+            </tr>
+        </table><label>Give owner access to :</label>
+
+        <table class="table" ng-show="showUsers">
+            <tr ng-repeat="user in node.affiliations['owner']">
+                <td>{{user}}</td>
+
+                <td>
+                    <a href="" ng-click="removeUser(user,'owner')" 
+                    	title="Remove from list" class="close-btn">
+                    </a>
+                </td>
+            </tr>
+
+            <tr ng-repeat="user in usersToAdd['owner']">
+                <td>{{user}}</td>
+                <td>
+                    <a href="" ng-click="removeUser(user,'owner')" 
+                      title="Remove from list" class="close-btn">
+                    </a>
+                </td>
+            </tr>
+        </table>
+
+        </table><label>Block access to :</label>
+        <table class="table" ng-show="showUsers">
+            <tr ng-repeat="user in node.affiliations['outcast']">
+                <td>{{user}}</td>
+                <td>
+                    <a href="" ng-click="removeUser(user)" title="Remove from list" 
+                      class="close-btn">
+                    </a>
+                </td>
+            </tr>
+
+            <tr ng-repeat="user in usersToAdd['outcast']">
+                <td>{{user}}</td>
+                <td>
+                    <a href="" ng-click="removeUser(user,'outcast')" 
+                      title="Remove from list" class="close-btn">
+                    </a>
+                </td>
+            </tr>
+        </table>
+        <div cg-busy="usersGet"></div>
+    </div>
+    </div>
+    </div>
+
+    <div class="modal-footer">
+        <button class="btn link-button" ng-click="cancel()">
+        	Cancel
+        </button>
+        <button type="button" class="btn blue-btn" ng-click="setPermissions()">
+        	Set Permissions
+    	</button>
+    </div>
+</body>
+</html>

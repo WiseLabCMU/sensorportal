@@ -2,6 +2,7 @@
   "name": "mortar-io",
   "version": "0.0.1",
   "private": true,
+  "directory": "public/resources/", 
   "dependencies": {
     "jquery": "1.11.1",
     "angular-bootstrap": "0.11.0",
@@ -17,7 +18,7 @@
     "strophejs-plugins": "bower-strophejs-plugins#~0.0.7"
   },
   "resolutions": {
-    "angular": "1.2.16"
+    "angular": "1.5.8"
   },
   "devDependencies": {
     "requirejs": "~2.1.22",
