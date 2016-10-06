@@ -13,7 +13,7 @@
             showFolderName : '@',
             onClickCb:'&'
           },
-          templateUrl: '/angular-app/directives/openlayers/olmap.html',
+          templateUrl: '/components/folder/folderMap/olmap.html',
           link: function(scope, element, attrs) {
             var map;
             scope.device = {};
@@ -149,57 +149,42 @@
               img.src = scope.mapImg;
             };
             var initDirective = function(){
-              scope.folderLoading = $http.get('/api/device/'+scope.folderId).success(function(response){
-                if(response.error){
-                  // $state.go('device.list');
-                  Alert.open('warning',response.message);
-                  return;
-                }
-                if(typeof response.device.properties =='undefined' || typeof response.device.properties.mapUri =='undefined'){
-                  // $state.go('device.list');
+	      scope.folderLoading = Device.constructDevice(scope.folderId, true);
+	      scope.folderLoading.then( function(folder) {
+                scope.folder = folder;
+		if(typeof folder.properties =='undefined' || 
+		   typeof folder.properties.mapUri =='undefined'){
                   Alert.open('warning','This folder does not have a map');
+                  $state.go('device.list', {folder: scope.folderId});
                   return;
                 }
-                scope.folder = response.device;
-                scope.mapImg = response.device.properties.mapUri;
+                scope.mapImg = folder.properties.mapUri;
                 if(typeof scope.deviceId != 'undefined'){
-                  scope.folderLoading = $http.get('/api/device/'+scope.deviceId).success(function(response){
+                  scope.folderLoading =constructDevice(scope.deviceId).then(function(response){
                     scope.devices.push(response.device);
                     initMap();
                   });
                 }else{
-                  scope.folderLoading = $http.get('/api/folder/'+scope.folderId+'/get_devices')
-                    .success(function(response){
-                      if(response.error){
-                        Alert.open('warning',response.message);
-                        return;
-                      }
-                      if(response.children.length < 1){
+	 	    promises = [];
+		    for (index in scope.folder.references.children) { 
+			    var child  = scope.folder.references.children[index];
+			    promises.push(Device.constructDevice(child.id,true ).then(function(device){
+										     scope.devices.push(device);}));
+		    }
+		    scope.deviceRequests = $q.all(promises)
+		    scope.deviceRequests.then( function(result) {
                         initMap();
-                        // Alert.open('warning','This folder does not contain devices');
-                        return;
-                      }
-                      var deviceRequests = [];
-                      for(var i in response.children){
-                        var id = response.children[i].id;
-                        var req = $http.get('/api/device/'+id).success(function(response){
-                          if(!response.error){
-                            scope.devices.push(response.device);
-                          }
-                        });
-                        deviceRequests.push(req);
-                      }
-                      $q.all(deviceRequests).then(function(){
-                        initMap();
-                      });
-                  });
-                }
-              });
-            };
+                      }, function(result) { 
+			      initMap();});
+
+		}
+	      }, function(error) { 
+                  $state.go('device.list', {folder: scope.folderId});
+                  Alert.open('warning','Could not load folder');
+	      });
+           };
             scope.$watch('folderId',function(n,o){
-              if(typeof n !=='undefined'){
                 initDirective();
-              }
             });
           }
         };

@@ -6,7 +6,7 @@
             devices: {},
             references: {}
         };
-        //name="enum" id="value"  ng-options="enum for (value,enum) in transducer.e track by value"
+        
         function Device(id) {
             this.id = id;
             this.references = {};
@@ -17,7 +17,6 @@
             this.storage = [];
             this.children = [];
             this.canActuate = false;
-
         };
 
         function Transducer(stanza) {
@@ -49,6 +48,7 @@
                 }
             }
         };
+
         /**
          * [prototype description]
          * @type Transducer
@@ -226,7 +226,9 @@
                             $self.transducers[transducer_key]).up();
                     }
                 }
-                if (typeof $self.geolocation != 'undefined') {}
+                if (typeof $self.geolocation != 'undefined') {
+			metaStanza.c('geoloc', $self.geolocation).up();
+		}
                 return metaStanza.up();
             },
             _getTimestamp: function() {
@@ -262,8 +264,81 @@
             },
             _parseGeolocation: function(stanza) {
                 //todo
-
-                return {};
+		 var $self = this;
+                var node, key, value, tran, nodes;
+		$self.geolocation = {};
+                if (typeof metaItem.childNodes[0].getAttribute('accuracy') != 'undefined')
+                    $self.geolocation.accuracy = metaItem.childNodes[0].getAttribute('accuracy');
+                if (typeof metaItem.childNodes[0].getAttribute('alt') != 'undefined') {
+                    $self.geolocation.alt = metaItem.childNodes[0].getAttribute('alt');
+                }
+                if (typeof metaItem.childNodes[0].getAttribute('altaccuracy') != 'undefined') {
+                    $self.geolocation.info = metaItem.childNodes[0].getAttribute('altaccuracy');
+                }
+                if (typeof stanza.childNodes[0].getAttribute('area') != 'undefined') {
+                    $self.geolocation.area = metaItem.childNodes[0].getAttribute('area');
+                }
+                if (typeof stanza.childNodes[0].getAttribute('bearing') != 'undefined') {
+                    $self.geolocation.bearing = metaItem.childNodes[0].getAttribute('bearing');
+                }
+                if (typeof stanza.childNodes[0].getAttribute('building') != 'undefined') {
+                    $self.geolocation.building = metaItem.childNodes[0].getAttribute('building');
+                }
+                if (typeof stanza.childNodes[0].getAttribute('country') != 'undefined') {
+                    $self.geolocation.country = metaItem.childNodes[0].getAttribute('country');
+                }
+		if (typeof stanza.childNodes[0].getAttribute('countrycode') != 'undefined') {
+                    $self.geolocation.countrycode = metaItem.childNodes[0].getAttribute('countrycode');
+                }
+		if (typeof stanza.childNodes[0].getAttribute('datum') != 'undefined') {
+                    $self.geolocation.datum = metaItem.childNodes[0].getAttribute('datum');
+                }
+		if (typeof stanza.childNodes[0].getAttribute('description') != 'undefined') {
+                    $self.geolocation.description = metaItem.childNodes[0].getAttribute('description');
+                }
+		if (typeof stanza.childNodes[0].getAttribute('error') != 'undefined') {
+                    $self.geolocation.error = metaItem.childNodes[0].getAttribute('error');
+                }
+		if (typeof stanza.childNodes[0].getAttribute('floor') != 'undefined') {
+                    $self.geolocation.floor = metaItem.childNodes[0].getAttribute('floor');
+                }
+		if (typeof stanza.childNodes[0].getAttribute('lat') != 'undefined') {
+                    $self.geolocation.lat = metaItem.childNodes[0].getAttribute('lat');
+                }
+		if (typeof stanza.childNodes[0].getAttribute('locality') != 'undefined') {
+                    $self.geolocation.locality = metaItem.childNodes[0].getAttribute('locality');
+                }
+		if (typeof stanza.childNodes[0].getAttribute('lon') != 'undefined') {
+                    $self.geolocation.locality = metaItem.childNodes[0].getAttribute('lon');
+                }
+		if (typeof stanza.childNodes[0].getAttribute('postalcode') != 'undefined') {
+                    $self.geolocation.locality = metaItem.childNodes[0].getAttribute('postalcode');
+                }
+		if (typeof stanza.childNodes[0].getAttribute('region') != 'undefined') {
+                    $self.geolocation.region = metaItem.childNodes[0].getAttribute('region');
+                }
+		if (typeof stanza.childNodes[0].getAttribute('room') != 'undefined') {
+                    $self.geolocation.room = metaItem.childNodes[0].getAttribute('room');
+                }
+		if (typeof stanza.childNodes[0].getAttribute('speed') != 'undefined') {
+                    $self.geolocation.speed = metaItem.childNodes[0].getAttribute('speed');
+                }
+		if (typeof stanza.childNodes[0].getAttribute('street') != 'undefined') {
+                    $self.geolocation.street = metaItem.childNodes[0].getAttribute('street');
+                }
+		if (typeof stanza.childNodes[0].getAttribute('text') != 'undefined') {
+                    $self.geolocation.text = metaItem.childNodes[0].getAttribute('text');
+                }
+		if (typeof stanza.childNodes[0].getAttribute('timestamp') != 'undefined') {
+                    $self.geolocation.timestamp = metaItem.childNodes[0].getAttribute('timestamp');
+                }
+		if (typeof stanza.childNodes[0].getAttribute('tzo') != 'undefined') {
+                    $self.geolocation.timestamp = metaItem.childNodes[0].getAttribute('tzo');
+                }
+		if (typeof stanza.childNodes[0].getAttribute('uri') != 'undefined') {
+                    $self.geolocation.uri = metaItem.childNodes[0].getAttribute('uri');
+                }
+                return $self.geolocation;
             },
             /* Parses meta stanza into this devices meta data
              * @param Element Meta item element*/
@@ -301,7 +376,7 @@
                         }
                     } else if (node.tagName == 'geolocation') {
                         //todo
-                        //$self.geolocation = $self.parseGeolocation(node);
+                        $self.geolocation = $self.parseGeolocation(node);
                     } else if (node.tagName == 'interface') {
                         $self.interfaces[node.getAttribute('name')] = true;
                     }

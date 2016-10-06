@@ -6,7 +6,7 @@
                 <a class="btn gray-btn" ng-click="reload()">
                     <i class="fa fa-refresh"></i>Refresh</a>
                 <button ng-if="hasMap()" type="button" class="btn gray-btn" 
-                  ui-sref="device.map({'folder':folder.id})">
+                  ui-sref="device.list.map({'folder':folder.id})">
       				<i class="fa fa-map-marker"></i>Map View
       			</button>
                 <a ui-sref="device.view({id: folder.id})"> </a>

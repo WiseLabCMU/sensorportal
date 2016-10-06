@@ -1,13 +1,14 @@
 (function() {
-    var UPDATE_TRANSDUCER_INTERVAL = 20000;
     var app = angular.module('create-config-controller', ['ui.router', 'device-services',
         'cgBusy', 'ui.bootstrap', 'alert-handler', 'checklist-model', 
 	'olmap-directive', 'uuid4', 'angular-centered' 
     ]);
-   app.controller('CreateConfigCtrl', function($scope, $stateParams, $state, uuid4, Device) {
+    app.controller('CreateConfigCtrl', function($scope, $stateParams, $state, 
+						uuid4, Device, $q) {
 	$scope.templateId = $stateParams.templateId;
 	$scope.type = $stateParams.type;
 	$scope.id = $scope.uuid;
+	$scope.config = {};
         var find_config = function(config, config_var) {
             var configHold;
             for (var arrIndex in config) {
@@ -30,9 +31,11 @@
             }
             return null;
         };
+
         // todo add more information about config
         Device.getDefaultConfig().then(
             function(config) {
+		    console.log(config);
 		    $scope.config = config;
         }, function(error) { 
 		Alert.open('error', "Could not get default node config");
@@ -48,17 +51,18 @@
                 deviceId = $stateParams['uuid'];
             }
 	    var promises = [];
-            device = Device.constructDevice(deviceUUID, false);
-            deviceActuation = Device.constructDevice(deviceUUID+"_act", false);
+            device = Device.constructDevice(deviceId, false);
+	    device.config = $scope.config;
+            deviceActuation = Device.constructDevice(deviceId+"_act", false);
             set_config(device.config, "pubsub#max_items", 500);
             device.config = $scope.config;
 	    deviceActuation.config = $scope.config;
             promises.push(device.create(device.config));
-            promises.push(deviceActuation.create(device.config));
+            promises.push(deviceActuation.create(deviceActuation.config));
 	    $q.all(promises).then(function(result) {
                 $state.go('devicecreate.edit', {
                     template: $stateParams.id,
-                    deviceid: deviceUUID
+                    deviceid: deviceId
                 }, function(error) {
                     console.log(error);
 		    Alert.close();
