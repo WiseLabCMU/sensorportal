@@ -16,7 +16,6 @@ at https://www.nginx.com.
 Once installed add the following server entry to the nginx configuration. 
 
 '''
-
 server {
     listen 80;
     root [path to public];
@@ -27,7 +26,7 @@ server {
     location / {
 	      try_files $uri $uri/ index.html;
     }
-    # pass through proxy  rpc commands.
+    \# pass through proxy  rpc commands.
     location /RPC2 {
         proxy_pass [xmpp server]:4560/RPC2;
     }
@@ -45,7 +44,6 @@ server {
         deny all;
     }
 }
-
 '''
 
 
@@ -55,12 +53,12 @@ Bower is a tool for managing javascript depenedencies. It relies on npm so npm m
 from npmjs.com or your prefered package manager. More information about bower can be found at https://bower.io. 
 
 To install bower and  
-'''
 
+'''bash
  npm install -g bower
  cd [path to repo]/mortar-io/
  bower install 
-
 '''
+
 If any dependency issues come up, it may be necessary to select which packages to install. 
 
