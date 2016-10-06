@@ -16,6 +16,7 @@ at https://www.nginx.com.
 Once installed add the following server entry to the nginx configuration. 
 
 '''
+
 server {
     listen 80;
     root [path to public];
@@ -44,6 +45,7 @@ server {
         deny all;
     }
 }
+
 '''
 
 
@@ -54,9 +56,11 @@ from npmjs.com or your prefered package manager. More information about bower ca
 
 To install bower and  
 '''
-# npm install -g bower
-# cd [path to repo]/mortar-io/
-# bower install 
+
+ npm install -g bower
+ cd [path to repo]/mortar-io/
+ bower install 
+
 '''
 If any dependency issues come up, it may be necessary to select which packages to install. 
 
