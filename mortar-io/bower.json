@@ -2,12 +2,14 @@
   "name": "mortar-io",
   "version": "0.0.1",
   "private": true,
-  "directory": "public/resources/", 
+  "directory": "public/resources/",
   "dependencies": {
     "jquery": "1.11.1",
     "angular-bootstrap": "0.11.0",
     "angular": "1.2.16",
     "angular-ui-router": "~0.2.10",
+    "angular-route": "",
+    "angular-uuid4": "",
     "angular-busy": "~4.0.4",
     "checklist-model": "~0.1.3",
     "angular-mighty-datepicker": "~0.0.9",
@@ -15,7 +17,13 @@
     "angular-qr": "~0.2.0",
     "fontawesome": "~4.2.0",
     "strophejs": "hack-strophe#~1.1.5",
-    "strophejs-plugins": "bower-strophejs-plugins#~0.0.7"
+    "strophejs-plugins": "bower-strophejs-plugins#~0.0.7",
+    "angular-csv-import": "",
+    "angular-xmlrpc": "",
+    "angular-filter": "",
+    "angular-timeout": "",
+    "angular-centered": "",
+    "angular-re-captcha": "^0.2.0"
   },
   "resolutions": {
     "angular": "1.5.8"
