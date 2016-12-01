@@ -68,7 +68,7 @@
          */
         $scope.addFolder = function() {
             modalInstance = $modal.open({
-                templateUrl: 'angular-app/partials/FolderModal.html',
+                templateUrl: 'folder/foldearAdd/folderAdd.html',
                 controller: 'FolderModalCtrl',
                 scope: $scope,
                 resolve: {
@@ -87,8 +87,8 @@
          */
         $scope.addDevice = function() {
             modalInstance = $modal.open({
-                templateUrl: 'angular-app/partials/DeviceModal.html',
-                controller: 'FolderModalCtrl',
+                templateUrl: 'components/folder/folderAdd/folderAdd.html',
+                controller: 'FolderAddCtrl',
                 scope: $scope,
                 resolve: {
                     fromModal: function() {

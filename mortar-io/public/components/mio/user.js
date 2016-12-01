@@ -129,11 +129,11 @@
                 return this.isOwner(nodeId) || this.isPublisher(nodeId);
 
             }
-            /**
-             * Returns if the user can manage, calls is owner function
-             * @param  string nodeId id of a device or location node
-             * @return boolean true if he can manage the devices permissions
-             */
+        /**
+         * Returns if the user can manage, calls is owner function
+         * @param  string nodeId id of a device or location node
+         * @return boolean true if he can manage the devices permissions
+         */
         this.canManage = function(nodeId) {
             return this.isOwner(nodeId) || this.isPublisher(nodeId);
         }
@@ -205,19 +205,16 @@
             xmlrpc.config({
                 hostname: 'localhost',
                 //hostname: $self.domain,
-                pathName: "/RPC2", // Default is /rpc2
+                pathName: "/RPC2", 
                 401: function() {
-                    console.log("You shall not pass !");
                 },
                 404: function() {
-                    console.log("Not the droids you're looking for");
                 },
                 500: function() {
-                    console.log("Something went wrong :(");
                 }
             });
             Strophe.TIMEOUT = 10000;
-            var bosh_endpoint = 'http://' + 'sensor.andrew.cmu.edu' + ':5280/http-bind/';
+            var bosh_endpoint = 'http://' + $self.domain + ':5280/http-bind/';
 
             $self.connection = new Strophe.Connection(bosh_endpoint);
             $self.connection.connect($self.username, password, function(status) {

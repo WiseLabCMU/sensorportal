@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<div class="modal-header">
+  <h3 class="modal-title">Add Group</h3>
+</div>
+<div cg-busy="saveUserPromise"></div>
+<div cg-busy="getUserPromise"></div>
+<form role="form" name="AddEditUserForm" novalidate>
+	<div class="modal-body">
+    	<alert ng-show="cp.error" type="warning" close="cp.error=false">
+    		{{cp.errorMessage}
+    	</alert>
+      		<label for="groupname">Group Name</label>
+      		<input class="form-control" type="text" name="groupname"  
+      		  ng-model="UGA.groupname" id="groupname" required />
+        	<p>Please, type in a group name.</p>
+
+      		<label for="grouphost">Group Host</label>
+      		<input class="form-control" type="text" name="grouphost"  
+      		  ng-model="UGA.grouphost" id="grouphost" required />
+        	<p>Please, type the host for the group.</p>
+
+      		<label for="description">Description</label>
+      		<input class="form-control" type="text" name="description"  
+      		  ng-model="UGA.description" id="description" />
+        	<p>Please, type in a description for the group.</p>
+
+      		<label for="description">Display Group</label>
+      		<input class="form-control" type="checkbox" name="displayGroup"  
+		ng-model="UGA.displayGroup" id="displayGroup"> Show Users </input>
+        	<p>Should the group be displayed to members.</p>
+    </div>
+  <div class="modal-footer">
+    <input type="button" class="btn link-button" ng-click="cancel()" value="Cancel">
+    <button ng-click="saveGroup()" class="btn blue-btn">
+	   Add Group 
+    </button>
+  </div>
+</form>

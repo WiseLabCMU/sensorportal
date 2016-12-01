@@ -1,28 +1,27 @@
 <div class="container-fluid">
     <div class="row">
         <div class="col-md-12">
-            <h2 class="pull-left title"> {{folder.name}}</h2>
+		<h2 class="pull-left title"> {{devList.folder.name}}</h2>
             <div class="pull-left folder-actions">
                 <a class="btn gray-btn" ng-click="reload()">
                     <i class="fa fa-refresh"></i>Refresh</a>
-                <button ng-if="hasMap()" type="button" class="btn gray-btn" 
-                  ui-sref="device.list.map({'folder':folder.id})">
+	    	<a class="btn gray-btn" ui-sref="device.list.map({'folder':folder.id})" 
+		    ng-if="hasMap()">
       				<i class="fa fa-map-marker"></i>Map View
-      			</button>
+			</a>
                 <a ui-sref="device.view({id: folder.id})"> </a>
-                <a ng-if="isOwner(folder)" ui-sref="device.permissions({id:folder.id,isFolder:1})" 
+                <a ng-if="isOwner(folder.id)" ui-sref="device.permissions({id:folder.id,isFolder:1})" 
                   class="btn gray-btn">
                     <i class="fa fa-cog"></i>Manage Permissions
                 </a>
                 <a ui-sref="device.list.favorites({id:folder.id})" class="btn gray-btn">
                     <i class="fa fa-thumb-tack"></i>Add to Favorites
                 </a>
-                <button ng-if="isPublisher(folder) || isOwner(folder)" type="button" 
-                  class="btn gray-btn" 
-                  ui-sref="device.list.edit({isUpdate: 'true'})">
+		<button ng-if="isPublisher(folder.id) || isOwner(folder.id)" 
+			type="button" class="btn gray-btn" ui-sref="device.list.edit({isUpdate: 'true'})">
 		  			<i class="fa fa-pencil-square-o"></i>Edit
 		  		</button>
-                <button ng-if="!isRootOrFavorite && (isOwner(folder))" type="button" 
+                <button ng-if="!isRootOrFavorite() && (isOwner(folder.id))" type="button" 
                   class="btn gray-btn" ng-click="deleteFolder()" ng-cloak>
                   	<i class="fa fa-trash-o"></i>Remove
                 </button>
@@ -35,17 +34,16 @@
                     <th>Device Info</th>
                 </thead>
                 <tbody>
-                    <tr ng-repeat="device in devices" class="device-row">
+                    <tr ng-repeat="device in devList.devices" class="device-row">
                         <td class="device-info devices-wrap">
                             {{device.name}}
                             <div class="btn-group device-list-actions">
-
                                 <span>
                                 	<a ui-sref="device.list({folder:device.id})" 
                                   	  class="btn btn-link" ng-if='device.metaType!="device"'>
                                   		Folder
                                 	</a>
-									<a ui-sref="device.view.detail({id:device.id})"
+					<a ui-sref="device.view.detail({id:device.id})"
 			   						  class="btn btn-link">Meta</a> |
 			   					</span>
                                 <span ng-if='canEdit(device) && device.metaType=="device"'>
@@ -60,8 +58,7 @@
 				  				</span>
                                 <span ng-if="!device.isFavorite">
                                 	<a ui-sref="device.view.favorites({id:device.id})"
-				  						class="btn btn-link">Add to favorite
-				  					</a>
+				  	class="btn btn-link">Add to favorite</a>
 				  				</span>
                                 <span ng-if="isOwner(device)">
                                 	<a ui-sref="device.permissions({id:device.id})"

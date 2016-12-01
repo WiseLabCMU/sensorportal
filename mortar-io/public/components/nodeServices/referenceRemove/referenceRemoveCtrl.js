@@ -15,16 +15,14 @@
      * @param  {[type]} fromModal      [description]
      * @param  {[type]} Alert          [description]
      * @param  {[type]} Folder         [description]
-     * @param  {[type]} Favorite       [description]
      * @param  {[type]} Browser        [description]
      * @param  {[type]} User           [description]
      * @param  {[type]} Device         [description]
      * @return {[type]}                [description]
      */
-    app.controller('FolderRemoveModalCtrl', function($scope, $modalInstance, $state,
+    app.controller('FolderRemoveCtrl', function($scope, $modalInstance, $state,
         $stateParams, $upload, $window, fromModal,
-        Alert, $q, Favorite, Browser, User, Device, uuid4) {
-        $scope.favorite = Favorite;
+        Alert, $q, Browser, User, Device, uuid4) {
         $scope.modalBrowser = {};
         $scope.folder = null;
         $scope.cp = {

@@ -2,7 +2,7 @@
     var app = angular.module('user-view-controller', ['ui.router', 'mortar-services',
         'cgBusy', 'angularTreeview', 'ui.bootstrap', 'xml-rpc', 'rt.timeout'
     ]);
-    app.controller('UserProfileCtrl', function($scope, $stateParams, User,
+    app.controller('UserViewCtrl', function($scope, $stateParams, User,
         $state, $modal, MortarUser, Alert, Device) {
         $scope.devices = {};
         if (typeof $stateParams.username == 'undefined') {

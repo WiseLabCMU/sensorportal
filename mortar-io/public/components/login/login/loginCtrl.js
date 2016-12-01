@@ -82,7 +82,7 @@
             return true;
         };
 
-        $scope.domain = 'sensor.andrew.cmu.edu';
+        $scope.domain = XMPP_SERVER;
 
     });
     /**
@@ -130,7 +130,7 @@
                     });
                 }, function(response) {
                     var modalInstance = $modal.open({
-                        templateUrl: 'angular-app/partials/initModal.html',
+                        templateUrl: 'components/addEditUser/addEditUser.html',
                         controller: 'UserInitCtrl',
                         resolve: {
                             username: function() {
@@ -178,8 +178,8 @@
          */
         $scope.register = function() {
             $modal.open({
-              templateUrl: '/angular-app/partials/register.html',
-              controller: 'UserRegisterCtrl',
+              templateUrl: 'register/create/create.html',
+              controller: 'CreateCtrl',
               scope: $scope
               }).result.then(function(result){
                 $scope.user.username = User.username;
@@ -191,8 +191,8 @@
          */
         $scope.forgotPassword = function() {
             $modal.open({
-                templateUrl: '/angular-app/partials/user-send-recovery.html',
-                controller: 'ForgotPasswordController',
+                templateUrl: '/login/resetPassword/resetPassword.html',
+                controller: 'ResetPasswordCtrl',
             }).result.then(function(result) {
                 Alert.open('success', result); //result brings a text msg.
             });

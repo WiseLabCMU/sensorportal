@@ -23,7 +23,7 @@
             <input type="radio" ng-model="folder.metaType" value="other"/>Other
             <br />
         </div>
-        <div class="row" ng-if="!folder.isFavorite">
+        <div class="row" >
             <div class="row">
                 <div class="col-md-5">
                     <div class="form-group" ng-if="user.isAdmin()">
@@ -36,7 +36,7 @@
                     </div>
                 </div>
                 <div class="col-md-6">
-                    <div class="form-group" ng-if="user.isAdmin()">
+                    <div class="form-group">
                         <div class="form-group">
                             <label for="folder_mapUri">
                             	Provide the URL of an image
@@ -47,14 +47,14 @@
                     </div>
                 </div>
             </div>
-            <a ng-if="isUpdate() && folder.properties['mapUri']" 
+            <a ng-if="folder.properties['mapUri']" 
               ng-href="{{folder.properteis['mapUri']}}" class="img-preview" 
               target="_blank">
                 <img class="img-rounded" ng-src="{{folder.properties['mapUri']}}"/>
             </a>
             <div ng-if="!isRootOrFavorite" ng-cloak>
                 <h3>Select folder location:</h3>
-                <span ng-if="isUpdate">Current :{{folder.parent.name}}</span>
+                <span>Current :{{folder.parent.name}}</span>
                 <div data-tree-view="true" data-tree-id="modalBrowser" 
                   data-tree-show-search="false" data-node-callback="selectDevice" 
                   data-collection-callback="selectFolder" data-hide-device="true" 

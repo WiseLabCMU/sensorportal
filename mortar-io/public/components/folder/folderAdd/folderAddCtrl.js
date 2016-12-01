@@ -63,7 +63,7 @@
          */
         $scope.submitFolder = function() {
             if ($scope.isUpdate()) {
-                $scope.folder.saveMeta();
+                $scope.folder.saveMeta().then(function(result) {
                 if (typeof $scope.selectedFolder != 'undefined') {
                     console.log("Selected Folder");
                     console.log($scope.selectedFolder);
@@ -82,8 +82,12 @@
                             type: 'child',
                             metaType: $scope.folder.metaType
                       }]);
-                }
-                $modalInstance.close([]);
+                	$modalInstance.close([]);
+		}
+	}, function(error) { 
+			Alert.open('warning',error);
+                	$modalInstance.close([]);
+		});
             } else {
                 if (typeof $scope.selectedFolder.id == 'undefined') {
                     $scope.selectedFolder.id = null;
@@ -112,7 +116,7 @@
                             metaType: 'location'
                         }]));
                         $q.all(folderAddPromises).then(function(result) {
-                            Alert.open('success', response.message);
+                            Alert.open('success', "References Added");
                             $scope.modalDeferred.resolve(true);
                             $modalInstance.close([$scope.selectedFolder.id]);
                         }, function(result) {
@@ -128,9 +132,9 @@
                 }, function(error) {
                     Alert.open("Could not add reference to created device " + error);
                     $scope.modalPromise.resolve(error);
-                    $modalInstance.close();
+                    $modalInstance.close([]);
                 });
-            }
+	    }
         };
         /**
          * selectFolder callback function to call inside the browser

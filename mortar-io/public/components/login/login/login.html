@@ -11,9 +11,7 @@
         </div>
         <button type="submit" class="btn btn-default" ng-disabled="!loginFormIsValid()">Login</button>
         <div cg-busy="loginPost"></div>
-        <label class="btn  ">
-      <input type="checkbox" ng-model="stayLoggedIn" name="stayLoggedIn"> Stay Logged In
-    </label>
+	<input type="checkbox" ng-model="stayLoggedIn" name="stayLoggedIn"> Stay Logged In </input>
         <br>
         <p>
             <a ui-sref="forgotPassword" class="btn btn-link" ng-click="forgotPassword()">Forgot password</a>

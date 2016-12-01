@@ -46,7 +46,6 @@
                     addFolder: '=?',
                     removeFolder: '=?',
                     hideRoot: '=?'
-
                 },
                 link: function(scope, element, attrs) {
 
@@ -147,25 +146,19 @@
                             };
                             //if node label clicks,
                             scope.treeId.selectNodeLabel = scope.treeId.selectNodeLabel || function(selectedNode) {
-                                if (typeof selectedNode == 'undefined') return;
-                                //remove highlight from previous node
-                                if (scope.treeId.currentNode && scope.treeId.selected[scope.treeId.currentNode.id]) {
-                                    scope.treeId.selected[scope.treeId.currentNode.id] = undefined;
-                                }
-
+                                if (typeof selectedNode == 'undefined') 
+					return;
+				if (typeof scope.treeId.currentNode != 'undefined') { 
+				    delete scope.treeId.selected[scope.treeId.currentNode.id];
+				}
+                                scope.treeId.selected[selectedNode.id] = 'selected';
                                 Browser.loadChildren(selectedNode.id).then(function(result) {
-				    if (typeof scope.treeId.currentNode != 'undefined') { 
-				        delete scope.treeId.selected[scope.treeId.currentNode.id];
-				    }
-                                    scope.treeId.selected[selectedNode.id] = 'selected';
                                     scope.treeId.currentNode = selectedNode;
                                     //set highlight to selected node
-                                    if (selectedNode[nodeType] == 'location') {
+                                    if (selectedNode.metaType == 'location') {
                                         if (typeof scope.collectionCallback != 'undefined') {
-                                            //scope.collectionCallback(scope.treeId.currentNode);
                                             scope.collectionCallback(selectedNode);
                                         }
-                                    	scope.treeId.selected[selectedNode.id] = 'selected';
                                         var isExpanded = (expandAll) ? scope.treeId.expanded[selectedNode.id] :
                                           !scope.treeId.expanded[selectedNode.id];
                                         if (isExpanded) {
@@ -190,24 +183,12 @@
                                 return;
                             }
 
-                            if (typeof scope.treeId.currentNode == 'undefined' && $state.is('device.list', {
-                                    folder: scope.user.rootFolder
-                                })) {
-                                Browser.loadChildren(User.rootFolder).then(function(result) {
-                                    scope.treeId.selectNodeLabel(Browser.references[User.rootFolder]);
-                                });
-                            } else if ($state.is("devicecreate.template") &&
+                            if ($state.is("devicecreate.template") &&
                                 typeof scope.treeId.currentNode == 'undefined') {
                                 var templateId = Device.constructDevice(scope.user.favoritesFolder, false).id.
                                 getChildByName('templates').node;
                                 Browser.loadChildren(templateId).then(function(result) {
                                     scope.treeId.selectNodeLabel(Browser.references[templateId]);
-                                });
-                            } else if ($state.is('device.list', {
-                                    folder: scope.user.favoritesFolder
-                                })) {
-                                Browser.loadChildren(scope.user.favoritesFolder).then(function(result) {
-                                    scope.treeId.selectNodeLabel(Browser.references[scope.user.favoritesFolder]);
                                 });
                             } else if (typeof scope.treeId.currentNode == 'undefined' &&
                                 !$state.is('device.list') &&

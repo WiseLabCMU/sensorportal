@@ -1,12 +1,12 @@
 # sensorportal
 This repository holds a web interface for the Sensor Andrew platform. 
 The site is based on angular.js and communicates with an ejabberd server
-over the BOSH protocol. 
+over the BOSH protocol. More information about the platform 
 
 ## Installation
 
-The  server that hosts the  sensor portal is NGINX and js packages are managed by bower. 
-What follows is how to install these two components.
+The NGINX server hosts the portal while bower manages js packages required by the site.
+The following sections describe how to install and setup the server.
 
 ### NGINX
 
@@ -14,7 +14,8 @@ First install
 nginx from source or a package manager. More installation information is found
 at https://www.nginx.com. 
 
-Once installed add the following server entry to the nginx configuration. 
+Once installed add the following server entry to the nginx configuration. For more information on 
+nginx configuration visit the [[ admin guide | https://www.nginx.com/resources/admin-guide/ ]].
 
 ```
 server {
@@ -51,13 +52,18 @@ server {
 Bower is a tool for managing javascript depenedencies. It relies on npm so npm must be installed first, 
 from npmjs.com or your prefered package manager. More information about bower can be found at https://bower.io. 
 
-To install bower and  
+To install bower and the dependencies after npm is installed : 
 
 ```
+
+ cd [path to repo]/sensorportal/mortar-io/
  npm install -g bower
- cd [path to repo]/mortar-io/
  bower install 
 ```
 
 If any dependency issues come up, it may be necessary to select which packages to install. 
 
+### Configure Deployment
+
+Under mortar-io/public/resources/variables.js you can set the pubsub service, xmpp server, and the websites url.
+This allows the webportal to work with XMPP servers accross deployments.

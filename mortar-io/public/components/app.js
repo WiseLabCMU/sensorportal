@@ -48,6 +48,7 @@
             url: '/list/?folder',
             templateUrl: '/components/folder/folderView/folderView.html',
             controller: 'FolderViewCtrl',
+	    controllerAs: 'devList',
             data: {
                 groups: [],
                 isModal: false
@@ -154,7 +155,7 @@
             }
         }).
         state('device.list.map', {
-		url: '/map/:folder',
+            url: '/map/?folder',
             templateUrl: '/components/folder/folderMap/folderMap.html',
             controller: 'FolderMapCtrl',
             data: {
@@ -407,8 +408,41 @@
         }).
         state('user.list', {
             url: '',
-            templateUrl: '/components/userManagement/userList.html',
+            templateUrl: '/components/user/userList/userList.html',
             controller: 'UsersCtrl',
+            data: {
+                groups: [],
+                isModal: false
+            }
+        }).
+        state('user.groups', {
+            url: '/groups',
+            templateUrl: '/components/user/aclList/aclList.html',
+            controller: 'AclCtrl',
+            data: {
+                groups: [],
+                isModal: false
+            }
+        }).
+        state('user.groups.add', {
+            url: '/add',
+	    onEnter: function($state, $modal, $stateParams) {
+                $modal.open({
+                    controller: 'AddGroupCtrl as UGA',
+                    templateUrl: '/components/user/addGroup/addGroup.html',
+                    //controllerAs: 'UGA'
+                }).result.then(function(result) {
+                        return $state.go('user.groups', {});
+                }, function() {
+                        return $state.go('user.groups', {});
+                    }
+                );
+                }}
+	     ).
+         state('user.groups.edit', {
+            url: '/user/groups',
+            templateUrl: '/components/user/addGroup/addGroup.html',
+            controller: 'AddGroupCtrl',
             data: {
                 groups: [],
                 isModal: false
@@ -416,8 +450,8 @@
         }).
         state('user.view', {
             url: '/?username',
-            templateUrl: '/components/user/userDetail/userDetail.html',
-            controller: 'UserProfileCtrl',
+            templateUrl: '/components/user/userView/userView.html',
+            controller: 'UserViewCtrl',
             data: {
                 groups: [],
                 isModal: false
@@ -427,7 +461,7 @@
             url: '/edit/?username?isEdit',
             onEnter: function($state, $stateParams, $modal, User, MortarUser) {
                 $modal.open({
-                    templateUrl: '/user/addEditUser/addEditUserModal.html',
+                    templateUrl: '/components/user/addEditUser/addEditUserModal.html',
                     controller: 'UserCreateEditCtrl',
                     resolve: {
                         username: function() {
@@ -518,8 +552,8 @@
             url: ':device',
             onEnter: function($state, $stateParams, $modal) {
                 $modal.open({
-                    templateUrl: 'components/nodeServices/removeFolder/FolderRemoveModal.html',
-                    controller: 'FolderRemoveModalCtrl'
+                    templateUrl: '/components/nodeServices/removeFolder/FolderRemoveModal.html',
+                    controller: 'FolderRemoveCtrl'
                 }).result.then(function(result) {
                     if (result) {
                         return $state.go('device.list');
@@ -616,8 +650,6 @@
                                 Browser.children = [User.rootFolder, User.favoritesFolder];
                                 userInfoPost.then(function(success) {
                                     Browser.init().then(function(result) {
-                                        console.log("Browser Initialized");
-                                        console.log(sessionState);
                                         $rootScope.tryingSession = false;
                                         if (typeof sessionState != 'undefined' && sessionState.state != '') {
                                             $state.go(sessionState.state,
@@ -629,7 +661,6 @@
                                         }
                                     }, function(result) {
                                         $rootScope.tryingSession = false;
-                                        console.log("Browser could not initialize");
                                     });
                                 });
                             },
@@ -640,7 +671,6 @@
                             });
                     };
                     event.preventDefault();
-                    console.log("LoginFunction call");
                     loginFunction();
                     $state.go('login');
                 } else if (!$rootScope.tryingSession && next.name != "login" &&

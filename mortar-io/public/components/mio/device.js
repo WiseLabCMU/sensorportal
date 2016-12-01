@@ -150,10 +150,10 @@
                 for (ref_key in this.references.parents) {
                     if (this.references.parents[ref_key] == null)
                         continue;
+                    ref = this._processRef(this.references.parents[ref_key]);
                     if (ref.type == 'undefined') {
                         continue;
                     }
-                    ref = this._processRef(this.references.parents[ref_key]);
                     referenceStanza.c('reference', ref).up();
                 }
                 for (ref_key in this.references.others) {
@@ -484,7 +484,6 @@
                                 $self._parseMetaItem(child);
                             } else if (id == 'references') {
                                 $self._parseReferenceItem(child.childNodes[0]);
-                                console.log($self.references);
                             } else if (id == 'storage') {
                                 $self.storage = $self._parseStorageItem(child);
                             }
@@ -707,6 +706,9 @@
                     for (ref_index = 0; ref_index < references.length; ref_index++) {
                         ref = references[ref_index];
                         type = ref.type;
+			var id = typeof ref.node == 'undefined' ? ref.id : ref.node;
+			console.log(ref.node);
+			ref.node = id;
                         if (type == 'child') {
                             $self.references.children[ref.node] = ref;
                         } else if (type == 'parent') {

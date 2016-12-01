@@ -1,0 +1,57 @@
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="form-group">
+		    <a class="add-group btn btn-primary pull-left" ui-sref="user.groups.add({})">
+                	Add Group 
+                </a>
+                <!--<input ng-model="query" placeholder="Search users" 
+		class="user-search form-control pull-right"/>-->
+            </div>
+            <table class="table">
+                <thead>
+                    <th>Group</th>
+                    <th>Host</th>
+                </thead>
+                <tbody ng-repeat="(hostName, hostGroups) in groups">
+                    <tr ng-repeat="group in hostGroups ">
+                        <td>{{group.group}}</td>
+                        <td>{{hostName}}</td>
+                        <td>
+                            <a ng-click="expandGroupUsers(group.group,group.host)" 
+                              title="Expand Group">
+                              Expand
+		      </a> <t/>
+                            <a ui-sref="user.groups.edit({group: group.group, host:hostName})" 
+                              title="Edit this group">
+                              	Edit
+                            </a><t/>
+                            <a href ng-click="removeGroup(group.group,group.host)" 
+                              title="Remove this group">
+                            	Delete
+                            </a>
+			    <br>
+			    <div ng-if="group.isExpanded"> 
+            			<table class="table">
+                			<thead>
+                			    <th>Name</th>
+                			    <th>User</th>
+                			    <th>Email</th>
+                			</thead>
+					<tbody> 
+						<tr ng-repeat="member in group.members">
+                        				<td>{{member.name}}</td>
+                        				<td>{{member.username}}</td>
+                        				<td>{{member.email}}</td>
+						</tr>
+					</tbody>
+				</table>
+			    </div>
+                        </td>
+		    </tr>
+                </tbody>
+            </table>
+        </div>
+</div> 
+    <div cg-busy="usersGetPromise"></div>
+</div>
