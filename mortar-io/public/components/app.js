@@ -463,6 +463,7 @@
                 $modal.open({
                     templateUrl: '/components/user/addEditUser/addEditUserModal.html',
                     controller: 'UserCreateEditCtrl',
+
                     resolve: {
                         username: function() {
                             return $stateParams.username;
@@ -493,22 +494,23 @@
             }
         }).
         state('user.add', {
-            url: '',
+            url: '/add',
+
             onEnter: function($state, $modal) {
                 $modal.open({
                     templateUrl: '/components/user/addEditUser/addEditUserModal.html',
                     controller: 'UserCreateEditCtrl',
+		    
                     resolve: {
+		        isEdit: function() { return false;},
                         username: function() {
                             return false;
                         }
                     }
                 }).result.then(function(result) {
-                    if (result) {
-                        return $state.transitionTo('user.list');
-                    }
+                    $state.transitionTo('user.list');
                 }, function() {
-                    return $state.transitionTo('user.list');
+                   $state.transitionTo('user.list');
                 });
             },
             data: {

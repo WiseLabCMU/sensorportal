@@ -31,8 +31,14 @@
             user = $stateParams.username + '@' + User.connection.domain;
         }
 
-        if (typeof $scope.user == 'undefined') {
-            $scope.getUserPromise = MortarUser.get(user).then(function(result) {
+        if (typeof $stateParams.username == 'undefined') {
+            $scope.getUserPromise = MortarUser.get(User.username).then(function(result) {
+                $scope.user = result;
+            }, function(errorstanza) {
+                Alert.open('warning', errorstanza);
+            });
+        } else {
+            $scope.getUserPromise = MortarUser.get($stateParams.username).then(function(result) {
                 $scope.user = result;
             }, function(errorstanza) {
                 Alert.open('warning', errorstanza);

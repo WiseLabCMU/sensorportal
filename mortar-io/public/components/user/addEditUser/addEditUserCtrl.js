@@ -66,9 +66,8 @@
             $scope.createUser = true;
         }
         
-		$scope.isEdit = function () { 
-			return $stateParams.isEdit;
-		}
+	$scope.isEdit = $stateParams.isEdit;
+	console.log("isEdit " + (!$stateParams.isEdit));
 		
         // sets the selected folder to user
         $scope.selectFolder = function(folder) {
@@ -117,12 +116,12 @@
             }, function(response) {
                 $scope.cp.error = true;
                 $scope.cp.errorMessage = response;
-                $modalInstance.close(response);
+                $modalInstance.dismiss(response);
             });
         }
 
         // Save user data, this handles both user creation and editing
-        $scope.saveUser = function() {
+        $scope.saveUser = function(user) {
             if ($scope.isEdit) {
                 $scope.editUser();
             } else {
@@ -132,7 +131,10 @@
 
         // Close modal form on cancel
         $scope.cancel = function() {
-            $modalInstance.close(true);
+		var response = {};
+                response.error = true;
+                response.errorMessage = "Modal canceled";
+                $modalInstance.dismiss(response);
         };
     });
 
