@@ -4,5 +4,9 @@ mortar-io/public/js/
 mortar-io/public/node-modules/
 *.swp
 *rc
+*DS_Store*
+composer.lock
+.bowerrc
+coposer.phar
 
 
