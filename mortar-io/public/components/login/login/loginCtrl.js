@@ -110,7 +110,7 @@
          */
         $scope.login = function() {
             if (!$scope.user.username.includes("@")) {
-                $scope.user.username = $scope.user.username + "@sensor.andrew.cmu.edu";
+                $scope.user.username = $scope.user.username + "@" + XMPP_SERVER;
             }
             $scope.loginPost = User.login($scope.user.username, $scope.user.password, $scope.stayLoggedIn);
             $scope.loginPost.then(function(response) {

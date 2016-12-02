@@ -69,7 +69,7 @@
             return true;
         };
 
-        $scope.domain = 'sensor.andrew.cmu.edu';
+        $scope.domain = XMPP_SERVER;
 
     });
 })();
