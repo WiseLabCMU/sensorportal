@@ -1,8 +1,8 @@
-
 (function() {
-    var app = angular.module('folder-add-controller', ['uuid4', 'ui.router', 'mortar-services', 
-			     'cgBusy', 'angularTreeview', 'ui.bootstrap', 'ngRoute']);
-     app.controller('FolderAddCtrl', function($rootScope, $scope, $q,
+    var app = angular.module('folder-add-controller', ['uuid4', 'ui.router', 'mortar-services',
+        'cgBusy', 'angularTreeview', 'ui.bootstrap', 'ngRoute'
+    ]);
+    app.controller('FolderAddCtrl', function($rootScope, $scope, $q,
         $modalInstance, $state, $stateParams, $upload, $window, Alert,
         Browser, User, Device, uuid4) {
         $scope.modalBrowser = {};
@@ -12,12 +12,12 @@
             error: false,
             errorMessage: ''
         };
-        
+
         $scope.showRoot = User.isAdmin();
         $scope.isRootOrFavorite = false;
-		$scope.isUpdate = function() { 
-			return $stateParams.isUpdate;
-		}
+        $scope.isUpdate = function() {
+            return $stateParams.isUpdate;
+        }
         if (User.isPublisherOrOwner(User.rootFolder)) {
             Browser.children = [User.rootFolder, User.favoritesFolder];
         } else {
@@ -41,13 +41,13 @@
             });
 
         } else {
-       		$scope.folder = {
-           	 id: uuid4.generate(),
-       	     name: '',
-       	     mapUri: '',
-       	     mapUriUrl: '',
-       	     type: 'location'
-        	};
+            $scope.folder = {
+                id: uuid4.generate(),
+                name: '',
+                mapUri: '',
+                mapUriUrl: '',
+                type: 'location'
+            };
         }
 
         /**
@@ -64,30 +64,30 @@
         $scope.submitFolder = function() {
             if ($scope.isUpdate()) {
                 $scope.folder.saveMeta().then(function(result) {
-                if (typeof $scope.selectedFolder != 'undefined') {
-                    console.log("Selected Folder");
-                    console.log($scope.selectedFolder);
-                    $scope.folder.addReferences([{
-                        id: $scope.selectedFolder.id,
-                        node: $scope.selectedFolder.id,
-                        name: $scope.selectedFolder.name,
-                        type: 'parent',
-                        metaType: $scope.selectedFolder.metaType
-                    }]);
-                    $scope.selectedFolder.addReferences(
-                      [{
-                            id: $scope.folder.id,
-                            node: $scope.folder.id,
-                            name: $scope.folder.name,
-                            type: 'child',
-                            metaType: $scope.folder.metaType
-                      }]);
-                	$modalInstance.close([]);
-		}
-	}, function(error) { 
-			Alert.open('warning',error);
-                	$modalInstance.close([]);
-		});
+                    if (typeof $scope.selectedFolder != 'undefined') {
+                        console.log("Selected Folder");
+                        console.log($scope.selectedFolder);
+                        $scope.folder.addReferences([{
+                            id: $scope.selectedFolder.id,
+                            node: $scope.selectedFolder.id,
+                            name: $scope.selectedFolder.name,
+                            type: 'parent',
+                            metaType: $scope.selectedFolder.metaType
+                        }]);
+                        $scope.selectedFolder.addReferences(
+                            [{
+                                id: $scope.folder.id,
+                                node: $scope.folder.id,
+                                name: $scope.folder.name,
+                                type: 'child',
+                                metaType: $scope.folder.metaType
+                            }]);
+                        $modalInstance.close([]);
+                    }
+                }, function(error) {
+                    Alert.open('warning', error);
+                    $modalInstance.close([]);
+                });
             } else {
                 if (typeof $scope.selectedFolder.id == 'undefined') {
                     $scope.selectedFolder.id = null;
@@ -134,7 +134,7 @@
                     $scope.modalPromise.resolve(error);
                     $modalInstance.close([]);
                 });
-	    }
+            }
         };
         /**
          * selectFolder callback function to call inside the browser
@@ -153,7 +153,7 @@
         $scope.isFolderNotSelect = function() {
             return typeof $scope.selectedFolder == 'undefined';
         }
-        
+
         /**
          * Close the create folder modal
          */

@@ -4,9 +4,9 @@
         'checklist-model', 'olmap-directive', 'ja.qr', 'angularTreeview',
         'uuid4', 'angular-centered', 'ngCsvImport'
     ]);
-        app.controller('CreateTemplateCtrl', function($scope, Device,
+    app.controller('CreateTemplateCtrl', function($scope, Device,
         $stateParams, User, $state,
         $filter, uuid4) {
 
     });
- })();
+})();

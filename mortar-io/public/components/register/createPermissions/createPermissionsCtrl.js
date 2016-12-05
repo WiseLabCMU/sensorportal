@@ -4,7 +4,7 @@
         'checklist-model', 'olmap-directive', 'ja.qr', 'angularTreeview',
         'uuid4', 'angular-centered', 'ngCsvImport'
     ]);
-app.controller('CreatePermissionsCtrl', function($scope, Device, $stateParams, User, Alert, MortarUser, $state, Browser) {
+    app.controller('CreatePermissionsCtrl', function($scope, Device, $stateParams, User, Alert, MortarUser, $state, Browser) {
         $scope.isFolder = false;
         $scope.user = User;
         $scope.username = "";
@@ -234,4 +234,4 @@ app.controller('CreatePermissionsCtrl', function($scope, Device, $stateParams, U
 
         };
     });
- })();
+})();

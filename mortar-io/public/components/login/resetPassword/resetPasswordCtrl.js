@@ -1,6 +1,7 @@
 (function() {
-    var app = angular.module('reset-password-controller', ['uuid4', 'ui.router', 'mortar-services', 
-			     'cgBusy', 'angularTreeview', 'ui.bootstrap', 'ngRoute']);
+    var app = angular.module('reset-password-controller', ['uuid4', 'ui.router', 'mortar-services',
+        'cgBusy', 'angularTreeview', 'ui.bootstrap', 'ngRoute'
+    ]);
     /**
      * [description]
      * @param  object $scope

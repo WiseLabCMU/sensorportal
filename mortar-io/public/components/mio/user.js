@@ -2,7 +2,7 @@
  * User Services
  */
 (function() {
-    var app = angular.module('user-services', [ 'xml-rpc']);
+    var app = angular.module('user-services', ['xml-rpc']);
 
     /**
      * Service that represents the logged in user
@@ -129,55 +129,61 @@
                 return this.isOwner(nodeId) || this.isPublisher(nodeId);
 
             }
-        /**
-         * Returns if the user can manage, calls is owner function
-         * @param  string nodeId id of a device or location node
-         * @return boolean true if he can manage the devices permissions
-         */
+            /**
+             * Returns if the user can manage, calls is owner function
+             * @param  string nodeId id of a device or location node
+             * @return boolean true if he can manage the devices permissions
+             */
         this.canManage = function(nodeId) {
             return this.isOwner(nodeId) || this.isPublisher(nodeId);
         }
 
         this.changePassword = function(password) {
-          var timeout = 5000; // 5 seconds
-          var iqId = this.connection.getUniqueId();
-          var atIndex =  this.username.indexOf('@');
-          var username = this.username.split(atIndex,1)
-          var stanza = $iq({type:'set', to:this.domain, id:iqId});
-          var deferred = $q.defer(); 
-          stanza.c('query', {xmlns: "jabber:iq:register"});
-          stanza.c('username', {}).t(username).up();
-          stanza.c('password', {}).t(password).up();
-          stanza.up();
-          console.log("In change password");
-          console.log(stanza.toString());
-          this.connection.sendIQ(stanza, function(iq) {
-          	  console.log(iq);
-              $self.password = password;
-              if ($self.saveUser) {
-                  $self.save();
-              }
-              deffered.resolve(iq);
-          }, function(iq) {
-             console.log(iq);
-             var type = iq.getAttribute('type');
-             if (iq == null) {
-                deferred.reject("Timeout");
-             } else if (type == 'error') {
-                        var error = iq.getElementsByTagName('error');
-                        var error_code = error[0].getAttribute('code');
-                        var error_type = error[0].getAttribute('type');
-                        var error_msg = error[0].childNodes[0].tagName;
-                        var msg = "Error Code: " + error_code + " ,Type: " +
-                            error_type + ", Message: " + error_msg;
-                        deferred.reject(msg);
-                    } else {
-                        deferred.reject("Could not publish, unknown response type.");
-                    }
-             deferred.reject(iq);
+            var timeout = 5000; // 5 seconds
+            var iqId = this.connection.getUniqueId();
+            var atIndex = this.username.indexOf('@');
+            var username = this.username.split(atIndex, 1)
+            var stanza = $iq({
+                type: 'set',
+                to: this.domain,
+                id: iqId
+            });
+            var deferred = $q.defer();
+            stanza.c('query', {
+                xmlns: "jabber:iq:register"
+            });
+            stanza.c('username', {}).t(username).up();
+            stanza.c('password', {}).t(password).up();
+            stanza.up();
+            console.log("In change password");
+            console.log(stanza.toString());
+            this.connection.sendIQ(stanza, function(iq) {
+                console.log(iq);
+                $self.password = password;
+                if ($self.saveUser) {
+                    $self.save();
+                }
+                deffered.resolve(iq);
+            }, function(iq) {
+                console.log(iq);
+                var type = iq.getAttribute('type');
+                if (iq == null) {
+                    deferred.reject("Timeout");
+                } else if (type == 'error') {
+                    var error = iq.getElementsByTagName('error');
+                    var error_code = error[0].getAttribute('code');
+                    var error_type = error[0].getAttribute('type');
+                    var error_msg = error[0].childNodes[0].tagName;
+                    var msg = "Error Code: " + error_code + " ,Type: " +
+                        error_type + ", Message: " + error_msg;
+                    deferred.reject(msg);
+                } else {
+                    deferred.reject("Could not publish, unknown response type.");
+                }
+                deferred.reject(iq);
 
-          }, timeout);
-          return deferred.promise;
+            }, timeout);
+            return deferred.promise;
 
         }
 
@@ -205,13 +211,10 @@
             xmlrpc.config({
                 hostname: 'localhost',
                 //hostname: $self.domain,
-                pathName: "/RPC2", 
-                401: function() {
-                },
-                404: function() {
-                },
-                500: function() {
-                }
+                pathName: "/RPC2",
+                401: function() {},
+                404: function() {},
+                500: function() {}
             });
             Strophe.TIMEOUT = 10000;
             var bosh_endpoint = 'http://' + $self.domain + ':5280/http-bind/';
@@ -243,8 +246,8 @@
                         });
                     return;
                 } else if (status == Strophe.Status.CONNFAIL) {
-                        loginDeferred.reject(
-                            "Strophe: Could not connect to server, connection failed.");
+                    loginDeferred.reject(
+                        "Strophe: Could not connect to server, connection failed.");
                 } else if (status == Strophe.Status.DISCONNECTING) {
                     loginDeferred.notify("Strophe: Disconnecting from server.");
                 } else if (status == Strophe.Status.DISCONNECTED) {

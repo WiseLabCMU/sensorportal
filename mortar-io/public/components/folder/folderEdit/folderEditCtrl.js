@@ -1,8 +1,8 @@
-
 (function() {
-    var app = angular.module('folder-edit-controller', ['uuid4', 'ui.router', 'mortar-services', 
-			     'cgBusy', 'angularTreeview', 'ui.bootstrap', 'ngRoute']);
-	app.controller('FolderEditCtrl', function($rootScope, $scope, $q,
+    var app = angular.module('folder-edit-controller', ['uuid4', 'ui.router', 'mortar-services',
+        'cgBusy', 'angularTreeview', 'ui.bootstrap', 'ngRoute'
+    ]);
+    app.controller('FolderEditCtrl', function($rootScope, $scope, $q,
         $modalInstance, $state, $stateParams, $upload, $window, Alert,
         Browser, User, Device, uuid4) {
         $scope.modalBrowser = {};
@@ -12,12 +12,12 @@
             error: false,
             errorMessage: ''
         };
-        
+
         $scope.showRoot = User.isAdmin();
         $scope.isRootOrFavorite = false;
-		$scope.isUpdate = function() { 
-			return $stateParams.isUpdate;
-		}
+        $scope.isUpdate = function() {
+            return $stateParams.isUpdate;
+        }
         if (User.isPublisherOrOwner(User.rootFolder)) {
             Browser.children = [User.rootFolder, User.favoritesFolder];
         } else {
@@ -41,13 +41,13 @@
             });
 
         } else {
-       		$scope.folder = {
-           	 id: uuid4.generate(),
-       	     name: '',
-       	     mapUri: '',
-       	     mapUriUrl: '',
-       	     type: 'location'
-        	};
+            $scope.folder = {
+                id: uuid4.generate(),
+                name: '',
+                mapUri: '',
+                mapUriUrl: '',
+                type: 'location'
+            };
         }
 
         /**
@@ -75,13 +75,13 @@
                         metaType: $scope.selectedFolder.metaType
                     }]);
                     $scope.selectedFolder.addReferences(
-                      [{
+                        [{
                             id: $scope.folder.id,
                             node: $scope.folder.id,
                             name: $scope.folder.name,
                             type: 'child',
                             metaType: $scope.folder.metaType
-                      }]);
+                        }]);
                 }
                 $modalInstance.close([]);
             } else {
@@ -149,7 +149,7 @@
         $scope.isFolderNotSelect = function() {
             return typeof $scope.selectedFolder == 'undefined';
         }
-        
+
         /**
          * Close the create folder modal
          */

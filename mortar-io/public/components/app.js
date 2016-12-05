@@ -328,14 +328,14 @@
         state('devicecreate.select', {
             url: '/devicecreate/select',
             templateUrl: '/components/register/createSelectType/createSelect.html',
-            controller: 'CreateSelectCtrl',
+            controller: 'CreateSelectTypeCtrl',
             data: {
                 groups: [],
                 isModal: false
             }
         }).
         state('devicecreate.templateselect', {
-            url: '/devicecreate/template/?type',
+            url: 'devicecreate/template/?type',
             templateUrl: '/components/register/createSelectTemplate/createSelectTemplate.html',
             controller: 'CreateSelectTemplateCtrl',
             data: {

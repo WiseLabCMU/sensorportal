@@ -141,16 +141,15 @@
                                 if (!scope.treeId.expanded[selectedNode.id]) {
                                     Browser.loadChildren(selectedNode.id);
                                 }
-                                scope.treeId.expanded[selectedNode.id] =
-                                 !scope.treeId.expanded[selectedNode.id];
+                                scope.treeId.expanded[selectedNode.id] = !scope.treeId.expanded[selectedNode.id];
                             };
                             //if node label clicks,
                             scope.treeId.selectNodeLabel = scope.treeId.selectNodeLabel || function(selectedNode) {
-                                if (typeof selectedNode == 'undefined') 
-					return;
-				if (typeof scope.treeId.currentNode != 'undefined') { 
-				    delete scope.treeId.selected[scope.treeId.currentNode.id];
-				}
+                                if (typeof selectedNode == 'undefined')
+                                    return;
+                                if (typeof scope.treeId.currentNode != 'undefined') {
+                                    delete scope.treeId.selected[scope.treeId.currentNode.id];
+                                }
                                 scope.treeId.selected[selectedNode.id] = 'selected';
                                 Browser.loadChildren(selectedNode.id).then(function(result) {
                                     scope.treeId.currentNode = selectedNode;
@@ -160,7 +159,7 @@
                                             scope.collectionCallback(selectedNode);
                                         }
                                         var isExpanded = (expandAll) ? scope.treeId.expanded[selectedNode.id] :
-                                          !scope.treeId.expanded[selectedNode.id];
+                                            !scope.treeId.expanded[selectedNode.id];
                                         if (isExpanded) {
                                             scope.treeId.selectNodeHead(scope.treeId.currentNode);
                                         }

@@ -36,32 +36,32 @@
             Strophe.TIMEOUT = 10000;
             $scope.connection = new Strophe.Connection(boshEndpoint);
             $scope.connection.register.connect(domain, function(status) {
-              if (status === Strophe.Status.REGISTER) {
-                $scope.formLoaded = true;
-                $scope.loadForm.resolve(true);
-              } else if (status === Strophe.Status.REGISTERED) {
-                User.username =  $scope.connection.register.fields.username +
-                  '@' +$scope.domain;
-                User.password = $scope.connection.register.fields.password;
-                $modalInstance.close();
-              } else if (status === Strophe.Status.CONFLICT) {
-                Alert.open('error',"Username already exists!");
-              } else if (status === Strophe.Status.NOTACCEPTABLE) {
-                Alert.open("Registration form not properly filled out.")
-              } else if (status === Strophe.Status.REGIFAIL) {
-                Alert.open('warning', "The server at " + domain + " does not allow registration.");
-                $modalInstance.dismiss();
-              } else if (status === Strophe.Status.CONNECTED) {
-                // do something after successful authentication
-              } else {
-                // Do other stuff
-              }
-              },
+                    if (status === Strophe.Status.REGISTER) {
+                        $scope.formLoaded = true;
+                        $scope.loadForm.resolve(true);
+                    } else if (status === Strophe.Status.REGISTERED) {
+                        User.username = $scope.connection.register.fields.username +
+                            '@' + $scope.domain;
+                        User.password = $scope.connection.register.fields.password;
+                        $modalInstance.close();
+                    } else if (status === Strophe.Status.CONFLICT) {
+                        Alert.open('error', "Username already exists!");
+                    } else if (status === Strophe.Status.NOTACCEPTABLE) {
+                        Alert.open("Registration form not properly filled out.")
+                    } else if (status === Strophe.Status.REGIFAIL) {
+                        Alert.open('warning', "The server at " + domain + " does not allow registration.");
+                        $modalInstance.dismiss();
+                    } else if (status === Strophe.Status.CONNECTED) {
+                        // do something after successful authentication
+                    } else {
+                        // Do other stuff
+                    }
+                },
                 $scope.waitTime);
         };
 
         $scope.$watch('domain', function(oldValue, newValue) {
-          $scope.domainSelected(newValue);
+            $scope.domainSelected(newValue);
         });
         $scope.cancel = function() {
             $modalInstance.dismiss();
@@ -101,13 +101,13 @@
         $scope.user = User;
 
         $scope.loginFormIsValid = function() {
-          return typeof $scope.user != 'undefined' && $scope.user.username != 'undefined'
-            && $scope.user.password != 'undefined' && $scope.user.username != ''
-            && $scope.user.password != '';
-        }
-        /**
-         * Authenticates the user.
-         */
+                return typeof $scope.user != 'undefined' && $scope.user.username != 'undefined' &&
+                    $scope.user.password != 'undefined' && $scope.user.username != '' &&
+                    $scope.user.password != '';
+            }
+            /**
+             * Authenticates the user.
+             */
         $scope.login = function() {
             if (!$scope.user.username.includes("@")) {
                 $scope.user.username = $scope.user.username + "@" + XMPP_SERVER;
@@ -120,12 +120,12 @@
                     Browser.init().then(function(result) {
                         var sessionState = JSON.parse($window.sessionStorage.getItem("State"));
                         if (typeof sessionState != 'undefined' &&
-                          sessionState != null && sessionState != '') {
-                                  $state.go(sessionState.state, sessionState.params);
+                            sessionState != null && sessionState != '') {
+                            $state.go(sessionState.state, sessionState.params);
                         } else {
-                          $state.go('device.list', {
-                              folder: User.rootFolder
-                          });
+                            $state.go('device.list', {
+                                folder: User.rootFolder
+                            });
                         }
                     });
                 }, function(response) {
@@ -160,9 +160,8 @@
                 });
             }, function(result) {
                 Alert.close();
-                Alert.open('error',result);
-            }
-          );
+                Alert.open('error', result);
+            });
         };
         /**
          * Logs the user out, and takes him to the login screen
@@ -178,10 +177,10 @@
          */
         $scope.register = function() {
             $modal.open({
-              templateUrl: 'register/create/create.html',
-              controller: 'CreateCtrl',
-              scope: $scope
-              }).result.then(function(result){
+                templateUrl: 'register/create/create.html',
+                controller: 'CreateCtrl',
+                scope: $scope
+            }).result.then(function(result) {
                 $scope.user.username = User.username;
                 $scope.user.password = User.password;
             });

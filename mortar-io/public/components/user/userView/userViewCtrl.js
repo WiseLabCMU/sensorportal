@@ -6,7 +6,7 @@
         $state, $modal, MortarUser, Alert, Device) {
         $scope.devices = {};
         if (typeof $stateParams.username == 'undefined') {
-            
+
         } else if ($stateParams.username == User.username) {
             $scope.user = User;
             User.nodes = {};
@@ -17,8 +17,8 @@
                 for (permittedDevice in permittedType) {
                     Device.constructDevice(permittedDevice, true).then(
                         function(device) {
-                        	$scope.devices[device.id] = device;
-                    	});
+                            $scope.devices[device.id] = device;
+                        });
                     count++;
                     if (count == 10) {
                         break;
@@ -62,8 +62,8 @@
                     }
                 }).result.then(function(result) {
                     // @todo handle result
-                }, function(result) { 
-                	Alert.open('error', result);
+                }, function(result) {
+                    Alert.open('error', result);
                 });
             },
             function() {};
@@ -71,8 +71,8 @@
         //Todo
         $scope.getUserInfo = function() {
                 var deferred = $q.defer();
-                if (typeof $scope.user.username != 'undefined' && 
-                  MortarUserFactory.user.username == username) {
+                if (typeof $scope.user.username != 'undefined' &&
+                    MortarUserFactory.user.username == username) {
                     deferred.resolve(MortarUserFactory.user);
                     return deferred.promise;
                 }

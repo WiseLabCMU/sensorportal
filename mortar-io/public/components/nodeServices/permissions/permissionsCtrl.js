@@ -3,7 +3,7 @@
     var app = angular.module('permissions-controller', ['ui.router', 'device-services',
         'cgBusy', 'ui.bootstrap', 'alert-handler', 'angular-centered'
     ]);
-/**
+    /**
      *Controller to manage device permissions
      *@param object $scope scope for this cntroller
      *@param service Device device service instance
@@ -118,7 +118,7 @@
                 });
             });
         };
-		$scope.loadUsers();
+        $scope.loadUsers();
         /**
          * addUser Add a user to the new user list
          * @param User $item user to add
@@ -142,8 +142,8 @@
             } else if (indexNewUsers !== -1) {
                 $scope.isAlreadySelected = true;
             } else if ($scope.isInArray(username, $scope.usersToRemove[permission])) {
-                indexToRemove = $scope.isInArray(username, 
-            	  $scope.usersToRemove[permission]);
+                indexToRemove = $scope.isInArray(username,
+                    $scope.usersToRemove[permission]);
                 $scope.usersToRemove[permission].splice(indexToRemove);
                 if (typeof $scope.usersToAdd[permission] == 'undefined')
                     $scope.usersToAdd[permission] = [];
@@ -188,9 +188,9 @@
                     $scope.usersToRemove.push(user);
                 }
             }
-        /**
-         * add and remove permissions to selected users
-         */
+            /**
+             * add and remove permissions to selected users
+             */
         $scope.setPermissions = function() {
             $scope.permissionPromises = [];
             if ($scope.usersToAdd['publisher'].length > 0) {

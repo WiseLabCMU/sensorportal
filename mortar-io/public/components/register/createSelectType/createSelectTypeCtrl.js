@@ -4,7 +4,7 @@
         'checklist-model', 'olmap-directive', 'ja.qr', 'angularTreeview',
         'uuid4', 'angular-centered', 'ngCsvImport'
     ]);
-    app.controller('CreateSelectCtrl', function($scope, Device, $stateParams, User,
+    app.controller('CreateSelectTypeCtrl', function($scope, Device, $stateParams, User,
         Alert, MortarUser, $http, Browser, $modal, $upload) {
         $scope.csvfile = '';
         $scope.csvresult = {};

@@ -4,6 +4,5 @@
         'cgBusy', 'ui.bootstrap', 'alert-handler', 'angular-centered'
     ]);
 
-   app.controller('CreateCtrl', function($scope, $stateParams, $state, uuid4, Device) {
-   });
+    app.controller('CreateCtrl', function($scope, $stateParams, $state, uuid4, Device) {});
 })();

@@ -1,8 +1,9 @@
 (function() {
-    var app = angular.module('create-references-controller', ['ui.router', 'device-services', 'user-services', 
-        'cgBusy', 'ui.bootstrap', 'alert-handler', 'angularTreeview', 'uuid4']);
+    var app = angular.module('create-references-controller', ['ui.router', 'device-services', 'user-services',
+        'cgBusy', 'ui.bootstrap', 'alert-handler', 'angularTreeview', 'uuid4'
+    ]);
 
-	app.controller('CreateReferencesCtrl', function($scope, $stateParams, $state, User, Alert, Browser,  Device) {
+    app.controller('CreateReferencesCtrl', function($scope, $stateParams, $state, User, Alert, Browser, Device) {
         $scope.deviceReferenceBrowser = {};
         $scope.references = [];
         $scope.type = $stateParams.type;
@@ -13,11 +14,11 @@
             Browser.loadChildren(device.id);
             $scope.selectedFolder = device;
         });
-	if (User.isAdmin()) { 
-		Browser.children = [User.rootFolder, User.favoritesFolder];
-	} else { 
-        	Browser.children = [User.favoritesFolder];
-	}
+        if (User.isAdmin()) {
+            Browser.children = [User.rootFolder, User.favoritesFolder];
+        } else {
+            Browser.children = [User.favoritesFolder];
+        }
 
         $scope.device = Device.constructDevice($stateParams.id, false);
 

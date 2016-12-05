@@ -26,24 +26,8 @@
 
         // If username is passed then load this user's data
         if (typeof username != 'undefined') {
-        	if (username == User.username) { 
-        		$scope.user = User;
-        		$scope.getFolderPromise = Device.constructDevice(
-                    $scope.user.rootFolder, true);
-                $scope.getFolderPromise.then(function(folder) {
-                    $scope.userRootFolder = folder;
-                    $scope.userCopy = folder;
-                    Browser.references[$scope.user.rootFolder] = $scope.userRootFolder;
-                    $scope.selectedFolder = $scope.user.rootFolder;
-                    $scope.folderLoaded = true;
-                }, function(response) {
-                    Alert.open('warning', response);
-                });
-        	} else {
-            $scope.userCopy = {};
-            $scope.getUserPromise = MortarUser.get(username);
-            $scope.getUserPromise.then(function(response) {
-                $scope.user = response;
+            if (username == User.username) {
+                $scope.user = User;
                 $scope.getFolderPromise = Device.constructDevice(
                     $scope.user.rootFolder, true);
                 $scope.getFolderPromise.then(function(folder) {
@@ -55,26 +39,42 @@
                 }, function(response) {
                     Alert.open('warning', response);
                 });
-                angular.copy($scope.user, $scope.userCopy);
-            }, function(response) {
-                $modalInstance.close(false);
-                Alert.open('warning', response);
-            });
-            $scope.createUser = false;
+            } else {
+                $scope.userCopy = {};
+                $scope.getUserPromise = MortarUser.get(username);
+                $scope.getUserPromise.then(function(response) {
+                    $scope.user = response;
+                    $scope.getFolderPromise = Device.constructDevice(
+                        $scope.user.rootFolder, true);
+                    $scope.getFolderPromise.then(function(folder) {
+                        $scope.userRootFolder = folder;
+                        $scope.userCopy = folder;
+                        Browser.references[$scope.user.rootFolder] = $scope.userRootFolder;
+                        $scope.selectedFolder = $scope.user.rootFolder;
+                        $scope.folderLoaded = true;
+                    }, function(response) {
+                        Alert.open('warning', response);
+                    });
+                    angular.copy($scope.user, $scope.userCopy);
+                }, function(response) {
+                    $modalInstance.close(false);
+                    Alert.open('warning', response);
+                });
+                $scope.createUser = false;
             }
         } else {
             $scope.createUser = true;
         }
-        
-		$scope.isEdit = function () { 
-			return $stateParams.isEdit;
-		}
-		
+
+        $scope.isEdit = function() {
+            return $stateParams.isEdit;
+        }
+
         // sets the selected folder to user
         $scope.selectFolder = function(folder) {
-                $scope.user.rootFolder = folder.id;
+            $scope.user.rootFolder = folder.id;
         }
-        
+
         // edit existing user's vcard
         $scope.editUser = function() {
             $scope.saveUserPromise = MortarUser.save($scope.userCopy);

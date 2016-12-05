@@ -6,7 +6,7 @@
             devices: {},
             references: {}
         };
-        
+
         function Device(id) {
             this.id = id;
             this.references = {};
@@ -227,8 +227,8 @@
                     }
                 }
                 if (typeof $self.geolocation != 'undefined') {
-			metaStanza.c('geoloc', $self.geolocation).up();
-		}
+                    metaStanza.c('geoloc', $self.geolocation).up();
+                }
                 return metaStanza.up();
             },
             _getTimestamp: function() {
@@ -264,9 +264,9 @@
             },
             _parseGeolocation: function(stanza) {
                 //todo
-		 var $self = this;
+                var $self = this;
                 var node, key, value, tran, nodes;
-		$self.geolocation = {};
+                $self.geolocation = {};
                 if (typeof metaItem.childNodes[0].getAttribute('accuracy') != 'undefined')
                     $self.geolocation.accuracy = metaItem.childNodes[0].getAttribute('accuracy');
                 if (typeof metaItem.childNodes[0].getAttribute('alt') != 'undefined') {
@@ -287,55 +287,55 @@
                 if (typeof stanza.childNodes[0].getAttribute('country') != 'undefined') {
                     $self.geolocation.country = metaItem.childNodes[0].getAttribute('country');
                 }
-		if (typeof stanza.childNodes[0].getAttribute('countrycode') != 'undefined') {
+                if (typeof stanza.childNodes[0].getAttribute('countrycode') != 'undefined') {
                     $self.geolocation.countrycode = metaItem.childNodes[0].getAttribute('countrycode');
                 }
-		if (typeof stanza.childNodes[0].getAttribute('datum') != 'undefined') {
+                if (typeof stanza.childNodes[0].getAttribute('datum') != 'undefined') {
                     $self.geolocation.datum = metaItem.childNodes[0].getAttribute('datum');
                 }
-		if (typeof stanza.childNodes[0].getAttribute('description') != 'undefined') {
+                if (typeof stanza.childNodes[0].getAttribute('description') != 'undefined') {
                     $self.geolocation.description = metaItem.childNodes[0].getAttribute('description');
                 }
-		if (typeof stanza.childNodes[0].getAttribute('error') != 'undefined') {
+                if (typeof stanza.childNodes[0].getAttribute('error') != 'undefined') {
                     $self.geolocation.error = metaItem.childNodes[0].getAttribute('error');
                 }
-		if (typeof stanza.childNodes[0].getAttribute('floor') != 'undefined') {
+                if (typeof stanza.childNodes[0].getAttribute('floor') != 'undefined') {
                     $self.geolocation.floor = metaItem.childNodes[0].getAttribute('floor');
                 }
-		if (typeof stanza.childNodes[0].getAttribute('lat') != 'undefined') {
+                if (typeof stanza.childNodes[0].getAttribute('lat') != 'undefined') {
                     $self.geolocation.lat = metaItem.childNodes[0].getAttribute('lat');
                 }
-		if (typeof stanza.childNodes[0].getAttribute('locality') != 'undefined') {
+                if (typeof stanza.childNodes[0].getAttribute('locality') != 'undefined') {
                     $self.geolocation.locality = metaItem.childNodes[0].getAttribute('locality');
                 }
-		if (typeof stanza.childNodes[0].getAttribute('lon') != 'undefined') {
+                if (typeof stanza.childNodes[0].getAttribute('lon') != 'undefined') {
                     $self.geolocation.locality = metaItem.childNodes[0].getAttribute('lon');
                 }
-		if (typeof stanza.childNodes[0].getAttribute('postalcode') != 'undefined') {
+                if (typeof stanza.childNodes[0].getAttribute('postalcode') != 'undefined') {
                     $self.geolocation.locality = metaItem.childNodes[0].getAttribute('postalcode');
                 }
-		if (typeof stanza.childNodes[0].getAttribute('region') != 'undefined') {
+                if (typeof stanza.childNodes[0].getAttribute('region') != 'undefined') {
                     $self.geolocation.region = metaItem.childNodes[0].getAttribute('region');
                 }
-		if (typeof stanza.childNodes[0].getAttribute('room') != 'undefined') {
+                if (typeof stanza.childNodes[0].getAttribute('room') != 'undefined') {
                     $self.geolocation.room = metaItem.childNodes[0].getAttribute('room');
                 }
-		if (typeof stanza.childNodes[0].getAttribute('speed') != 'undefined') {
+                if (typeof stanza.childNodes[0].getAttribute('speed') != 'undefined') {
                     $self.geolocation.speed = metaItem.childNodes[0].getAttribute('speed');
                 }
-		if (typeof stanza.childNodes[0].getAttribute('street') != 'undefined') {
+                if (typeof stanza.childNodes[0].getAttribute('street') != 'undefined') {
                     $self.geolocation.street = metaItem.childNodes[0].getAttribute('street');
                 }
-		if (typeof stanza.childNodes[0].getAttribute('text') != 'undefined') {
+                if (typeof stanza.childNodes[0].getAttribute('text') != 'undefined') {
                     $self.geolocation.text = metaItem.childNodes[0].getAttribute('text');
                 }
-		if (typeof stanza.childNodes[0].getAttribute('timestamp') != 'undefined') {
+                if (typeof stanza.childNodes[0].getAttribute('timestamp') != 'undefined') {
                     $self.geolocation.timestamp = metaItem.childNodes[0].getAttribute('timestamp');
                 }
-		if (typeof stanza.childNodes[0].getAttribute('tzo') != 'undefined') {
+                if (typeof stanza.childNodes[0].getAttribute('tzo') != 'undefined') {
                     $self.geolocation.timestamp = metaItem.childNodes[0].getAttribute('tzo');
                 }
-		if (typeof stanza.childNodes[0].getAttribute('uri') != 'undefined') {
+                if (typeof stanza.childNodes[0].getAttribute('uri') != 'undefined') {
                     $self.geolocation.uri = metaItem.childNodes[0].getAttribute('uri');
                 }
                 return $self.geolocation;
@@ -706,9 +706,9 @@
                     for (ref_index = 0; ref_index < references.length; ref_index++) {
                         ref = references[ref_index];
                         type = ref.type;
-			var id = typeof ref.node == 'undefined' ? ref.id : ref.node;
-			console.log(ref.node);
-			ref.node = id;
+                        var id = typeof ref.node == 'undefined' ? ref.id : ref.node;
+                        console.log(ref.node);
+                        ref.node = id;
                         if (type == 'child') {
                             $self.references.children[ref.node] = ref;
                         } else if (type == 'parent') {
@@ -926,12 +926,12 @@
                 var $self = this;
                 var deferred = $q.defer();
                 if (!defaultConfig) {
-                     DeviceService.getDefaultConfig().then( function(config) {
-			     $self.config = config;
-			     deferred.resolve(config);
-		     }, function(error) { 
-			     deferred.reject(error);
-		     }); 
+                    DeviceService.getDefaultConfig().then(function(config) {
+                        $self.config = config;
+                        deferred.resolve(config);
+                    }, function(error) {
+                        deferred.reject(error);
+                    });
                 } else {
                     User.connection.pubsub.getConfig($self.id, function(result) {
                         var type = result.getAttribute('type');
@@ -1022,40 +1022,40 @@
                 return this.saveMeta();
             }
         };
-        DeviceService.getDefaultConfig =  function() {
-		var deferred = $q.defer();
-		User.connection.pubsub.getDefaultNodeConfig(function(result) {
-                        var type = result.getAttribute('type');
-                        if (type == 'result') {
-                            var x = result.getElementsByTagName('x');
-                            config = [];
-                            for (configIndex = 0; configIndex < x[0].childNodes.length; configIndex++) {
-                                var field = x[0].childNodes[configIndex];
-                                var v = field.getAttribute('var');
-                                var conftype = field.getAttribute('type');
-                                var label = field.getAttribute('label');
-                                var value;
-                                if (field.childNodes.length > 0) {
-                                    value = field.childNodes[0].textContent;
-                                } else {
-                                    value = "";
-                                }
-
-                               config.push({
-                                    var: v,
-                                    type: conftype,
-                                    label: label,
-                                    value: value
-                                });
+        DeviceService.getDefaultConfig = function() {
+                var deferred = $q.defer();
+                User.connection.pubsub.getDefaultNodeConfig(function(result) {
+                    var type = result.getAttribute('type');
+                    if (type == 'result') {
+                        var x = result.getElementsByTagName('x');
+                        config = [];
+                        for (configIndex = 0; configIndex < x[0].childNodes.length; configIndex++) {
+                            var field = x[0].childNodes[configIndex];
+                            var v = field.getAttribute('var');
+                            var conftype = field.getAttribute('type');
+                            var label = field.getAttribute('label');
+                            var value;
+                            if (field.childNodes.length > 0) {
+                                value = field.childNodes[0].textContent;
+                            } else {
+                                value = "";
                             }
-                            deferred.resolve(config);
-                        } else if (type == 'error') {
-                            $self._handleIqError(result, deferred);
-                        } else {
-                            deferred.reject(result);
+
+                            config.push({
+                                var: v,
+                                type: conftype,
+                                label: label,
+                                value: value
+                            });
                         }
-                    });
-		    return deferred.promise;
+                        deferred.resolve(config);
+                    } else if (type == 'error') {
+                        $self._handleIqError(result, deferred);
+                    } else {
+                        deferred.reject(result);
+                    }
+                });
+                return deferred.promise;
             },
             /**
              * [constructDevice description]

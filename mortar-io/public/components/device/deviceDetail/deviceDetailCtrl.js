@@ -33,7 +33,7 @@
             function(event, toState, toParams, fromState, fromParams) {
                 $interval.cancel($scope.intervalPromise);
             });
-             $scope.isOwner = function(deviceId) {
+        $scope.isOwner = function(deviceId) {
             return User.isOwner({
                 id: deviceId
             });
@@ -46,29 +46,30 @@
             });
         };
         $scope.isFavorite = function() {
-        	if (typeof $scope.device == 'undefined') {
-        		return true;
-        	}
-        	return $scop.device.name == User.favoritesFolder;
+            if (typeof $scope.device == 'undefined') {
+                return true;
+            }
+            return $scop.device.name == User.favoritesFolder;
         };
         $scope.reload = function() {
             $scope.initFolder({
                 id: $stateParams.id
             });
         };
-        $scope.isSubscribed = function() { 
-        	return User.isSubscribed($stateParams.id);
+        $scope.isSubscribed = function() {
+            return User.isSubscribed($stateParams.id);
         }
         $scope.deleteDevice = function() {
-        	var parent;
+            var parent;
             if (typeof $scope.device.parents != 'undefined' &&
-                Object.keys($scope.device.parents).length > 0){
+                Object.keys($scope.device.parents).length > 0) {
                 parent = $scope.device.parents[0].id;
             } else {
                 parent = User.favoritesFolder;
             }
             $state.go('device.view.delete', {
-              parent:parent});
+                parent: parent
+            });
         };
     });
 })();

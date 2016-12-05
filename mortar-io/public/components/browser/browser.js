@@ -59,8 +59,8 @@
                     if (typeof $self.references[device.id] != 'undefined') {
                         device.parents = $self.references[device.id].parents;
                     }
-		    console.log("Browser device");
-		    console.log(device);
+                    console.log("Browser device");
+                    console.log(device);
                     $self.references[device.id] = device;
                     for (child_index = 0; child_index < device.children.length; child_index++) {
                         var child = device.children[child_index];

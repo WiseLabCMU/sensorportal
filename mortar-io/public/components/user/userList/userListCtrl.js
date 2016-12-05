@@ -3,7 +3,7 @@
         'cgBusy', 'angularTreeview', 'ui.bootstrap', 'xml-rpc', 'rt.timeout'
     ]);
 
-app.controller('UsersCtrl', function($scope, Alert, MortarUser, $modal,
+    app.controller('UsersCtrl', function($scope, Alert, MortarUser, $modal,
         User, $q, $timeout) {
         // todo extend to people who do not have xmlrpc access
         $scope.users = [];
@@ -79,7 +79,7 @@ app.controller('UsersCtrl', function($scope, Alert, MortarUser, $modal,
                     }
                 }
             }).result.then(function(result) {
-                
+
             }, function(result) {
                 Alert.open(result);
             });

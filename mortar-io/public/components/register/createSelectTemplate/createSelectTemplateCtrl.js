@@ -4,12 +4,12 @@
         'cgBusy', 'ui.bootstrap', 'alert-handler', 'angular-centered'
     ]);
 
-   app.controller('CreateSelectTemplateCtrl', function($scope, $stateParams, $state, uuid4,
-						       Device, Browser, User) {
-	Browser.children = [];
+    app.controller('CreateSelectTemplateCtrl', function($scope, $stateParams, $state, uuid4,
+        Device, Browser, User) {
+        Browser.children = [];
         $scope.templateBrowser = {};
         $scope.selectedDevice = null;
-        $scope.createType = $stateParams['type'];
+        $scope.createType = $stateParams.type;
 
         $scope.getTemplateChildren = function() {
             Browser.children.push($scope.template.id);
@@ -36,14 +36,12 @@
             });
         };
         // Assumes rootFolder has already been loaded
-
         Device.constructDevice(User.favoritesFolder, true).then(function(devicetemp) {
             $scope.template = devicetemp.getChildByName('templates');
             if ($scope.template === null) {
                 Device.constructDevice(User.rootFolder, true).then(
                     function(device) {
                         $scope.template = device.getChildByName('templates');
-
                         Browser.loadChildren($scope.template.id);
                         Device.constructDevice($scope.template.id, true).then(
                             function(device) {
@@ -81,5 +79,5 @@
         };
 
 
-   });
+    });
 })();
