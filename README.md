@@ -1,7 +1,7 @@
 # sensorportal
 This repository holds a web interface for the Sensor Andrew platform. 
-The site is based on angular.js and communicates with an ejabberd server
-over the BOSH protocol. More information about the platform 
+The site is based on angular.js (1.5) and communicates with the Sensor Andrew
+XMPP server using [BOSH](http://xmpp.org/extensions/xep-0124.html). More information about the platform 
 
 ## Installation
 
@@ -11,16 +11,21 @@ The following sections describe how to install and setup the server.
 ### NGINX
 
 First install 
-nginx from source or a package manager. More installation information is found
+NGINX from source or a package manager. More installation information is found
 at https://www.nginx.com. 
 
 Once installed add the following server entry to the nginx configuration. For more information on 
-nginx configuration visit the [[ admin guide | https://www.nginx.com/resources/admin-guide/ ]].
+nginx configuration visit the [[ admin guide | https://www.nginx.com/resources/admin-guide/ ]]. 
+
+This sets up a server on port 80. If using another port use `lsof -i` to determine what ports are in use.
+Also note that the nginx user may not have access to some port ranges, such as if you are using selinux.
+Make sure that the nginx user, and optionally groups, has read permission to your public directory.
+Here you can set the access and error logs to locations of your choosing. 
 
 ```
 server {
     listen 80;
-    root [path to public];
+    root [path to public folder in repo];
     index index.html;
     server_name localhost;
     charset utf-8;
@@ -61,9 +66,9 @@ To install bower and the dependencies after npm is installed :
  bower install 
 ```
 
-If any dependency issues come up, it may be necessary to select which packages to install. 
+If any dependency issues come up, choose the most up to date 1.x version suggested. 
 
 ### Configure Deployment
 
-Under mortar-io/public/resources/variables.js you can set the pubsub service, xmpp server, and the websites url.
-This allows the webportal to work with XMPP servers accross deployments.
+Under mortar-io/public/resources/variables.js you can set the pubsub service, xmpp server, login screen name, and the website url.
+This allows the webportal to work with XMPP servers accross instances. 
